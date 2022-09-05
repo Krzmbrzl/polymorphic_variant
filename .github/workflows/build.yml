@@ -1,0 +1,41 @@
+name: Build and test
+
+on: [push, pull_request]
+
+env:
+  buildDir: ${{ github.workspace }}/build/
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-20.04
+            triplet: x64-linux
+          - os: windows-2019
+            triplet: x64-windows
+          - os: macos-10.15
+            triplet: x64-osx
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+            submodules: 'recursive'
+
+      - uses: lukka/get-cmake@latest
+
+      - name: Build
+        uses: lukka/run-cmake@v3
+        with:
+          cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
+          cmakeListsTxtPath: '${{ github.workspace }}/CMakeLists.txt'
+          buildDirectory: ${{ env.buildDir }}
+          buildWithCMake: true
+          cmakeAppendedArgs: -DPV_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Test
+        run: cd "${{ env.buildDir }}"; ctest --output-on-failure --timeout 10
+        shell: bash
