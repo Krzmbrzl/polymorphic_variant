@@ -41,3 +41,4 @@ target_include_directories(polymorphic_variant INTERFACE "${CMAKE_SOURCE_DIR}/in
 target_compile_features(polymorphic_variant INTERFACE cxx_std_17)
 
 add_subdirectory(tests)
+add_subdirectory(benchmarks)

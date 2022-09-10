@@ -1,0 +1,23 @@
+# Use of this source code is governed by a BSD-style license that can
+# be found in the LICENSE file at the root of the source tree or at
+# <https://github.com/Krzmbrzl/polymorphic_variant/blob/main/LICENSE>.
+
+option(PV_BUILD_BENCHMARKS "Whether to build benchmarks for the polymorphic_variant class" OFF)
+
+if (PV_BUILD_BENCHMARKS)
+	include(FetchContent)
+
+	FetchContent_Declare(
+		GoogleBenchmark
+		GIT_REPOSITORY https://github.com/google/benchmark.git
+		GIT_TAG v1.6.1
+	)
+	FetchContent_MakeAvailable(GoogleBenchmark)
+
+	add_executable(polymorphic_variant_benchmark
+		"benchmarks.cpp"
+		"initializer.cpp"
+	)
+
+	target_link_libraries(polymorphic_variant_benchmark PRIVATE benchmark::benchmark polymorphic_variant)
+endif()
