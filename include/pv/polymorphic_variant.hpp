@@ -91,7 +91,7 @@ public:
 	/**
 	 * Gets the stored value as a base-class reference
 	 */
-	constexpr Base &get() {
+	constexpr Base &get() noexcept {
 		assert(m_base_ptr);
 		assert(!m_variant.valueless_by_exception());
 		return *m_base_ptr;
@@ -100,7 +100,7 @@ public:
 	/**
 	 * Gets the stored value as a base-class reference
 	 */
-	constexpr const Base &get() const {
+	constexpr const Base &get() const noexcept {
 		assert(m_base_ptr);
 		assert(!m_variant.valueless_by_exception());
 		return *m_base_ptr;
@@ -109,7 +109,7 @@ public:
 	/**
 	 * Accesses the currently stored object via the base-class interface
 	 */
-	constexpr Base *operator->() {
+	constexpr Base *operator->() noexcept {
 		assert(m_base_ptr);
 		assert(!m_variant.valueless_by_exception());
 		return m_base_ptr;
@@ -118,7 +118,7 @@ public:
 	/**
 	 * Accesses the currently stored object via the base-class interface
 	 */
-	constexpr const Base *operator->() const {
+	constexpr const Base *operator->() const noexcept {
 		assert(m_base_ptr);
 		assert(!m_variant.valueless_by_exception());
 		return m_base_ptr;
