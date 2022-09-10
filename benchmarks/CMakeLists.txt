@@ -7,6 +7,7 @@ option(PV_BUILD_BENCHMARKS "Whether to build benchmarks for the polymorphic_vari
 if (PV_BUILD_BENCHMARKS)
 	include(FetchContent)
 
+	set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
 	FetchContent_Declare(
 		GoogleBenchmark
 		GIT_REPOSITORY https://github.com/google/benchmark.git
