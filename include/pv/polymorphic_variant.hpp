@@ -156,7 +156,10 @@ public:
 		return m_variant.template emplace< I >(std::forward(il), args...);
 	}
 
-	void swap(polymorphic_variant &rhs) { m_variant.swap(rhs); }
+	void swap(polymorphic_variant &rhs) {
+		m_variant.swap(rhs.m_variant);
+		std::swap(m_base_ptr, rhs.m_base_ptr);
+	}
 
 private:
 	variant_type m_variant;
