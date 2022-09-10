@@ -34,7 +34,7 @@ jobs:
           cmakeListsTxtPath: '${{ github.workspace }}/CMakeLists.txt'
           buildDirectory: ${{ env.buildDir }}
           buildWithCMake: true
-          cmakeAppendedArgs: -DPV_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
+          cmakeAppendedArgs: -DPV_BUILD_TESTS=ON -DPV_BUILD_BENCHMARKS=ON -DCMAKE_BUILD_TYPE=Debug
 
       - name: Test
         run: cd "${{ env.buildDir }}"; ctest --output-on-failure --timeout 10
