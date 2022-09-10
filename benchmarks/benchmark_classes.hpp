@@ -11,6 +11,7 @@
 class Animal {
 public:
 	Animal() = default;
+	virtual ~Animal() = default;
 
 	std::array<int, 100> filler;
 
