@@ -77,7 +77,7 @@ template< typename T, bool visibleInit > void perform_linear_search(benchmark::S
 		}());
 	}
 
-	std::random_shuffle(vec.begin(), vec.end());
+	std::shuffle(vec.begin(), vec.end(), rng);
 
 	for (auto _ : state) {
 		// We search for an element that can't exist (due to the limits we chose for our RNG above)
@@ -124,7 +124,7 @@ static void BM_linearSearch_devirtualized(benchmark::State &state) {
 		vec.push_back(Dog(dist(rng)));
 	}
 
-	std::random_shuffle(vec.begin(), vec.end());
+	std::shuffle(vec.begin(), vec.end(), rng);
 
 	for (auto _ : state) {
 		benchmark::DoNotOptimize(
