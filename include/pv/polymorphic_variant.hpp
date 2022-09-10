@@ -5,6 +5,7 @@
 #ifndef PV_POLYMORPHICVARIANT_HPP_
 #define PV_POLYMORPHICVARIANT_HPP_
 
+#include "details/storage_ptr.hpp"
 #include "details/variadic_parameter_helper.hpp"
 
 #include <cassert>
@@ -43,7 +44,9 @@ public:
 	// Constructors (same as for std::variant)
 	constexpr polymorphic_variant()
 		: m_variant(),
-		  m_base_ptr(&std::get< typename details::first_variadic_parameter< Types... >::type >(m_variant)) {}
+		  m_base_ptr(
+			  details::storage_ptr< Base, typename details::first_variadic_parameter< Types... >::type, Types... >::get(
+				  m_variant)) {}
 
 	constexpr polymorphic_variant(const polymorphic_variant &other) = default;
 
@@ -54,24 +57,32 @@ public:
 
 	template< typename T >
 	constexpr explicit polymorphic_variant(T &&t)
-		: m_variant(std::forward< T >(t)), m_base_ptr(&std::get< std::decay_t< T > >(m_variant)) {}
+		: m_variant(std::forward< T >(t)),
+		  m_base_ptr(details::storage_ptr< Base, typename std::decay_t< T >, Types... >::get(m_variant)) {}
 
 	template< typename T, typename... Args >
 	constexpr explicit polymorphic_variant(std::in_place_type_t< T >, Args &&... args)
-		: m_variant(std::in_place_type< T >, args...), m_base_ptr(&std::get< std::decay_t< T > >(m_variant)) {}
+		: m_variant(std::in_place_type< T >, args...),
+		  m_base_ptr(details::storage_ptr< Base, typename std::decay_t< T >, Types... >::get(m_variant)) {}
 
 	template< typename T, typename U, typename... Args >
 	constexpr explicit polymorphic_variant(std::in_place_type_t< T >, std::initializer_list< U > il, Args &&... args)
 		: m_variant(std::in_place_type< T >, std::forward(il), args...),
-		  m_base_ptr(&std::get< std::decay_t< T > >(m_variant)) {}
+		  m_base_ptr(details::storage_ptr< Base, typename std::decay_t< T >, Types... >::get(m_variant)) {}
 
 	template< std::size_t I, typename... Args >
 	constexpr explicit polymorphic_variant(std::in_place_index_t< I >, Args &&... args)
-		: m_variant(std::in_place_index< I >, args...), m_base_ptr(&std::get< I >(m_variant)) {}
+		: m_variant(std::in_place_index< I >, args...),
+		  m_base_ptr(
+			  details::storage_ptr< Base, typename std::variant_alternative_t< I, variant_type >, Types... >::get(
+				  m_variant)) {}
 
 	template< std::size_t I, typename U, typename... Args >
 	constexpr explicit polymorphic_variant(std::in_place_index_t< I >, std::initializer_list< U > il, Args &&... args)
-		: m_variant(std::in_place_index< I >, std::forward(il), args...), m_base_ptr(&std::get< I >(m_variant)) {}
+		: m_variant(std::in_place_index< I >, std::forward(il), args...),
+		  m_base_ptr(
+			  details::storage_ptr< Base, typename std::variant_alternative_t< I, variant_type >, Types... >::get(
+				  m_variant)) {}
 
 	~polymorphic_variant() = default;
 
@@ -131,7 +142,10 @@ public:
 	constexpr polymorphic_variant &operator=(polymorphic_variant &&rhs) = default;
 
 	template< typename T > polymorphic_variant &operator=(T &&t) {
-		m_variant = t;
+		m_variant = std::forward< T >(t);
+
+		details::storage_ptr< Base, void, Types... >::update(m_base_ptr, m_variant);
+
 		return *this;
 	}
 
@@ -139,21 +153,38 @@ public:
 	constexpr std::size_t index() const noexcept { return m_variant.index(); }
 
 	template< typename T, typename... Args > T &emplace(Args &&... args) {
-		return m_variant.template emplace< T >(args...);
+		T &ref = m_variant.template emplace< T >(args...);
+
+		details::storage_ptr< Base, void, Types... >::update(m_base_ptr, m_variant);
+
+		return ref;
 	}
 
 	template< typename T, typename U, typename... Args > T &emplace(std::initializer_list< U > il, Args &&... args) {
-		return m_variant.template emplace< T >(std::forward(il), args...);
+		T &ref = m_variant.template emplace< T >(std::forward< std::initializer_list< U > >(il), args...);
+
+		details::storage_ptr< Base, void, Types... >::update(m_base_ptr, m_variant);
+
+		return ref;
 	}
 
 	template< std::size_t I, typename... Args >
 	std::variant_alternative_t< I, variant_type > &emplace(Args &&... args) {
-		return m_variant.template emplace< I >(args...);
+		std::variant_alternative_t< I, variant_type > &ref = m_variant.template emplace< I >(args...);
+
+		details::storage_ptr< Base, void, Types... >::update(m_base_ptr, m_variant);
+
+		return ref;
 	}
 
 	template< std::size_t I, typename U, typename... Args >
 	std::variant_alternative_t< I, variant_type > &emplace(std::initializer_list< U > il, Args &&... args) {
-		return m_variant.template emplace< I >(std::forward(il), args...);
+		std::variant_alternative_t< I, variant_type > &ref =
+			m_variant.template emplace< I >(std::forward< std::initializer_list< U > >(il), args...);
+
+		details::storage_ptr< Base, void, Types... >::update(m_base_ptr, m_variant);
+
+		return ref;
 	}
 
 	void swap(polymorphic_variant &rhs) {
