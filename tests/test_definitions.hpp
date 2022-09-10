@@ -23,6 +23,9 @@ class Derived1 : public Base {
 public:
 	static constexpr int test_value = 1;
 
+	static constexpr int field_value = 18;
+	int derived1Field = field_value;
+
 	using Base::Base;
 
 	virtual int get_test() const override { return test_value; }
@@ -31,6 +34,9 @@ public:
 class Derived2 : public Base {
 public:
 	static constexpr int test_value = 2;
+
+	static constexpr int field_value = 42;
+	int derived2Field = field_value;
 
 	using Base::Base;
 

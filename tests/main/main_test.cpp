@@ -19,13 +19,13 @@ TEST(main, default_constructible) {
 }
 
 TEST(main, construct_from_value) {
-	pv::polymorphic_variant<Base, Derived1, Base, Derived2> variant(Derived1{5});
+	pv::polymorphic_variant< Base, Derived1, Base, Derived2 > variant(Derived1{ 5 });
 
 	ASSERT_EQ(variant->the_value, 5);
 }
 
 TEST(main, assignable) {
-	pv::polymorphic_variant<Base, Derived1, Base, Derived2> variant;
+	pv::polymorphic_variant< Base, Derived1, Base, Derived2 > variant;
 
 	ASSERT_EQ(variant->get_test(), Derived1::test_value);
 
@@ -33,8 +33,26 @@ TEST(main, assignable) {
 
 	ASSERT_EQ(variant->get_test(), Derived2::test_value);
 
-	variant.emplace<Base>(5);
+	variant.emplace< Base >(5);
 
 	ASSERT_EQ(variant->get_test(), Base::test_value);
 	ASSERT_EQ(variant->the_value, 5);
+}
+
+TEST(main, get) {
+	pv::polymorphic_variant< Base, Derived1, Base, Derived2 > variant(Derived1{});
+
+	{
+		Derived1 &derivedRef = dynamic_cast< Derived1 & >(variant.get());
+
+		ASSERT_EQ(derivedRef.derived1Field, Derived1::field_value);
+	}
+
+	variant = Derived2{};
+
+	{
+		Derived2 &derivedRef = dynamic_cast< Derived2 & >(variant.get());
+
+		ASSERT_EQ(derivedRef.derived2Field, Derived2::field_value);
+	}
 }
