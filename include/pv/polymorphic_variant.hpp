@@ -91,7 +91,7 @@ public:
 	/**
 	 * Gets the stored value as a base-class reference
 	 */
-	Base &get() {
+	constexpr Base &get() {
 		assert(m_base_ptr);
 		assert(!m_variant.valueless_by_exception());
 		return *m_base_ptr;
@@ -100,7 +100,7 @@ public:
 	/**
 	 * Gets the stored value as a base-class reference
 	 */
-	const Base &get() const {
+	constexpr const Base &get() const {
 		assert(m_base_ptr);
 		assert(!m_variant.valueless_by_exception());
 		return *m_base_ptr;
@@ -109,7 +109,7 @@ public:
 	/**
 	 * Accesses the currently stored object via the base-class interface
 	 */
-	Base *operator->() {
+	constexpr Base *operator->() {
 		assert(m_base_ptr);
 		assert(!m_variant.valueless_by_exception());
 		return m_base_ptr;
@@ -118,7 +118,7 @@ public:
 	/**
 	 * Accesses the currently stored object via the base-class interface
 	 */
-	const Base *operator->() const {
+	constexpr const Base *operator->() const {
 		assert(m_base_ptr);
 		assert(!m_variant.valueless_by_exception());
 		return m_base_ptr;
@@ -127,12 +127,12 @@ public:
 	/**
 	 * @returns The underlying variant object
 	 */
-	variant_type &variant() { return m_variant; }
+	constexpr variant_type &variant() { return m_variant; }
 
 	/**
 	 * @returns The underlying variant object
 	 */
-	const variant_type &variant() const { return m_variant; }
+	constexpr const variant_type &variant() const { return m_variant; }
 
 
 	// Delegating functions for that part of the variant interface that also directly makes sense for
