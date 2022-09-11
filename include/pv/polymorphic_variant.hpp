@@ -5,6 +5,7 @@
 #ifndef PV_POLYMORPHICVARIANT_HPP_
 #define PV_POLYMORPHICVARIANT_HPP_
 
+#include "details/is_variant.hpp"
 #include "details/storage_ptr.hpp"
 #include "details/variadic_parameter_helper.hpp"
 
@@ -23,6 +24,15 @@ namespace pv {
  * Thus, effectively this class represents a way to obtain value-semantics for a set of polymorphic types.
  */
 template< typename Base, typename... Types > class polymorphic_variant {
+private:
+	using self_type = ::pv::polymorphic_variant< Base, Types... >;
+
+	template< typename T > static constexpr bool is_self_type_v = std::is_same_v< std::decay_t< T >, self_type >;
+
+	template< typename T > using disable_if_self_type_t = std::enable_if_t< !is_self_type_v< T >, self_type >;
+
+	template< typename T > using disable_if_variant_type_t = std::enable_if_t< !details::is_variant_v< T >, T >;
+
 public:
 	// Ensure that Types contains at least one type
 	static_assert(sizeof...(Types) > 0, "Must provide at least one explicit sub-type");
@@ -55,17 +65,19 @@ public:
 		other.m_base_ptr = nullptr;
 	}
 
-	template< typename T >
+	template< typename T, typename = disable_if_self_type_t< T >, typename = disable_if_variant_type_t< T > >
 	constexpr explicit polymorphic_variant(T &&t)
 		: m_variant(std::forward< T >(t)),
 		  m_base_ptr(details::storage_ptr< Base, typename std::decay_t< T >, Types... >::get(m_variant)) {}
 
-	template< typename T, typename... Args >
+	template< typename T, typename... Args, typename = disable_if_self_type_t< T >,
+			  typename = disable_if_variant_type_t< T > >
 	constexpr explicit polymorphic_variant(std::in_place_type_t< T >, Args &&... args)
 		: m_variant(std::in_place_type< T >, args...),
 		  m_base_ptr(details::storage_ptr< Base, typename std::decay_t< T >, Types... >::get(m_variant)) {}
 
-	template< typename T, typename U, typename... Args >
+	template< typename T, typename U, typename... Args, typename = disable_if_self_type_t< T >,
+			  typename = disable_if_variant_type_t< T > >
 	constexpr explicit polymorphic_variant(std::in_place_type_t< T >, std::initializer_list< U > il, Args &&... args)
 		: m_variant(std::in_place_type< T >, std::forward(il), args...),
 		  m_base_ptr(details::storage_ptr< Base, typename std::decay_t< T >, Types... >::get(m_variant)) {}
