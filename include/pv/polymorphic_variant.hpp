@@ -58,9 +58,9 @@ public:
 			  details::storage_ptr< Base, typename details::first_variadic_parameter< Types... >::type, Types... >::get(
 				  m_variant)) {}
 
-	constexpr polymorphic_variant(const polymorphic_variant &other) = default;
+	constexpr polymorphic_variant(const self_type &other) = default;
 
-	constexpr polymorphic_variant(polymorphic_variant &&other)
+	constexpr polymorphic_variant(self_type &&other)
 		: m_variant(std::move(other.m_variant)), m_base_ptr(other.m_base_ptr) {
 		other.m_base_ptr = nullptr;
 	}
