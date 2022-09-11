@@ -5,6 +5,7 @@
 #ifndef PV_DETAILS_VARIANTTYPE_HPP_
 #define PV_DETAILS_VARIANTTYPE_HPP_
 
+#include "pv/details/is_variant.hpp"
 #include "pv/polymorphic_variant.hpp"
 
 #include <type_traits>
@@ -13,13 +14,10 @@
 namespace pv {
 namespace details {
 
-	template< typename T > struct is_variant : std::false_type {};
-	template< typename... Types > struct is_variant< std::variant< Types... > > : std::true_type {};
-
 	template< typename Variant > struct variant_converter {
 		using variant_type = std::remove_reference_t< Variant >;
 
-		static_assert(is_variant<Variant>::value, "Can only feed variant types into variant_converter");
+		static_assert(is_variant_v< Variant >, "Can only feed variant types into variant_converter");
 
 		static variant_type &toVariant(variant_type &var) { return var; }
 
