@@ -21,17 +21,17 @@ namespace {
 template< typename PtrType, typename ActiveType = void, typename... Types > struct storage_ptr {
 	static PtrType *get(std::variant< Types... > &variant) {
 		if constexpr (exploit_shared_storage && !std::is_same_v< void, ActiveType >) {
-			return reinterpret_cast< PtrType * >(&std::get< ActiveType >(variant));
+			return static_cast< PtrType * >(&std::get< ActiveType >(variant));
 		} else {
-			return std::visit([](auto &&value) { return reinterpret_cast< PtrType * >(&value); }, variant);
+			return std::visit([](auto &&value) { return static_cast< PtrType * >(&value); }, variant);
 		}
 	}
 
 	static const PtrType *get(const std::variant< Types... > &variant) {
 		if constexpr (exploit_shared_storage && !std::is_same_v< void, ActiveType >) {
-			return reinterpret_cast< const PtrType * >(&std::get< ActiveType >(variant));
+			return static_cast< const PtrType * >(&std::get< ActiveType >(variant));
 		} else {
-			return std::visit([](auto &&value) { return reinterpret_cast< const PtrType * >(&value); }, variant);
+			return std::visit([](auto &&value) { return static_cast< const PtrType * >(&value); }, variant);
 		}
 	}
 
