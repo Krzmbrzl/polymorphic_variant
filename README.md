@@ -32,7 +32,9 @@ base_ref->base_function();
 
 This mini, header-only library defines a new type `pv::polymorphic_variant` that for the most part acts as a `std::variant` (most of variant's
 interface is available on `polymorphic_variant`) with the addition of the function `get`, and operators `->` and `*`, which all obtain a base-class 
-reference (or pointer) instead of a reference (pointer) of the currently stored object type.
+reference (or pointer) instead of a reference (pointer) of the currently stored object type. Additionally, the `polymorphic_variant` will expose
+almost all operators defined for the base-class (the noteworthy exceptions are `operator->` and `operator*` as those are required for the variant's
+own interface).
 
 A `polymorphic_variant` takes the template arguments `polymorphic_variant< BaseClass, AssignableClasses >` where `AssignableClasses` is a non-empty
 list of types that shall be stored inside the variant (may contain `BaseClass`, if `BaseClass` is not an abstract class. So for our example above, we
@@ -41,6 +43,10 @@ would use a `polymorphic_variant< Base, Base, Derived1, Derived2 >` and in order
 pv::polymorphic_variant< Base, Base, Derived1, Derived2 > variant;
 
 variant->base_function();
+```
+and in order to access the base-class's `operator==` (assuming it has one), all that is needed is
+```cpp
+variant == ...
 ```
 
 Should you ever require access to the underlying `std::variant` object, you can access it via the `variant()` member function.
@@ -79,7 +85,7 @@ include(FetchContent)
 
 FetchContent_Declare(polymorphic_variant
     GIT_REPOSITORY https://github.com/Krzmbrzl/polymorphic_variant
-	GIT_TAG v1.0.0
+	GIT_TAG v1.2.0
 )
 FetchContent_MakeAvailable(polymorphic_variant)
 ```
@@ -196,4 +202,8 @@ BM_linearSearch_devirtualized/32768                                             
 BM_linearSearch_devirtualized/262144                                                 1213397 ns      1213332 ns          580
 ```
 </details>
+
+Preliminary investigations seem to indicate that clang is better at performing devirtualization of member functions when using `polymorphic_variant`,
+leading to better performance. Therefore, if possible, it is recommended to compile your project using this library by clang instead of gcc (or MSVC
+for that matter).
 
