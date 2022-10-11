@@ -5,6 +5,7 @@
 #ifndef PV_POLYMORPHICVARIANT_HPP_
 #define PV_POLYMORPHICVARIANT_HPP_
 
+#include "details/has_operator.hpp"
 #include "details/is_variant.hpp"
 #include "details/storage_ptr.hpp"
 #include "details/variadic_parameter_helper.hpp"
@@ -204,6 +205,11 @@ public:
 	void swap(polymorphic_variant &rhs) {
 		m_variant.swap(rhs.m_variant);
 		std::swap(m_base_ptr, rhs.m_base_ptr);
+	}
+
+	template< typename Index, typename = details::enable_if_has_subscript_t< base_type, Index > >
+	auto operator[](Index idx) {
+		return get()[idx];
 	}
 
 private:
