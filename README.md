@@ -31,10 +31,9 @@ base_ref->base_function();
 ## Description
 
 This mini, header-only library defines a new type `pv::polymorphic_variant` that for the most part acts as a `std::variant` (most of variant's
-interface is available on `polymorphic_variant`) with the addition of the function `get`, and operators `->` and `*`, which all obtain a base-class 
-reference (or pointer) instead of a reference (pointer) of the currently stored object type. Additionally, the `polymorphic_variant` will expose
-almost all operators defined for the base-class (the noteworthy exceptions are `operator->` and `operator*` as those are required for the variant's
-own interface).
+interface is available on `polymorphic_variant`) with the addition of the function `get`, and operators `->` and unary `*`, which all obtain a
+base-class reference (or pointer) instead of a reference (pointer) of the currently stored object type. Additionally, the `polymorphic_variant` will
+expose almost all operators defined for the base-class (except those mentioned above, which are already used by the variant's own interface).
 
 A `polymorphic_variant` takes the template arguments `polymorphic_variant< BaseClass, AssignableClasses >` where `AssignableClasses` is a non-empty
 list of types that shall be stored inside the variant (may contain `BaseClass`, if `BaseClass` is not an abstract class. So for our example above, we
