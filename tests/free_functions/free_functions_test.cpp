@@ -66,5 +66,9 @@ TEST(free_functions, compare) {
 	pv::polymorphic_variant< Base, Base, Derived1, Derived2 > variant2(Derived2{ 7 });
 
 	ASSERT_EQ(variant1, variant1);
+	ASSERT_EQ(variant1, variant1.get());
+	ASSERT_EQ(variant1.get(), variant1);
 	ASSERT_NE(variant2, variant1);
+	ASSERT_NE(variant2.get(), variant1);
+	ASSERT_NE(variant2, variant1.get());
 }

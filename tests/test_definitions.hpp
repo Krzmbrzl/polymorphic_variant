@@ -17,6 +17,10 @@ public:
 	virtual ~Base() = default;
 
 	virtual int get_test() const { return test_value; }
+
+	bool operator==(Base &other) {
+		return the_value == other.the_value;
+	}
 };
 
 class Derived1 : public Base {

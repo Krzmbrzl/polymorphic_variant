@@ -50,6 +50,8 @@ public:
 	 */
 	using variant_type = std::variant< Types... >;
 
+	using base_type = std::decay_t< Base >;
+
 
 	// Constructors (same as for std::variant)
 	constexpr polymorphic_variant()

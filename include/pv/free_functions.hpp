@@ -5,6 +5,7 @@
 #ifndef PV_FREEFUNCTIONS_HPP_
 #define PV_FREEFUNCTIONS_HPP_
 
+#include "pv/details/has_operator.hpp"
 #include "pv/details/variant_converter.hpp"
 #include "pv/polymorphic_variant.hpp"
 
@@ -12,6 +13,15 @@
 #include <variant>
 
 namespace pv {
+
+namespace {
+	template< typename > constexpr bool is_polymorphic_variant_v = false;
+	template< typename Base, typename... Types >
+	constexpr bool is_polymorphic_variant_v< polymorphic_variant< Base, Types... > > = true;
+
+	template< typename T >
+	using enable_if_polymorphic_variant_t = std::enable_if_t< is_polymorphic_variant_v< T >, void >;
+} // namespace
 
 template< typename Visitor, typename... Variants > constexpr auto visit(Visitor &&vis, Variants &&... vars) {
 	// std::visit can only deal with std::variants, so we have to make sure we pass polymorphic_variant as the
@@ -70,35 +80,49 @@ template< typename T, typename Variant > constexpr std::add_pointer_t< T > get_i
 }
 
 
-template< typename VariantA, typename VariantB > bool operator==(const VariantA &lhs, const VariantB &rhs) {
-	return details::variant_converter< VariantA >::toVariant(lhs)
-		   == details::variant_converter< VariantB >::toVariant(rhs);
-}
+///////////////////////////////////////////////////////////////
+///////////////// BINARY OPERATORS ////////////////////////////
+///////////////////////////////////////////////////////////////
 
-template< typename VariantA, typename VariantB > bool operator!=(const VariantA &lhs, const VariantB &rhs) {
-	return details::variant_converter< VariantA >::toVariant(lhs)
-		   != details::variant_converter< VariantB >::toVariant(rhs);
-}
+#define BINARY_OPS             \
+	PROCESS_OP(==, equals)     \
+	PROCESS_OP(!=, unequals)   \
+	PROCESS_OP(<, less)        \
+	PROCESS_OP(>, greater)     \
+	PROCESS_OP(<=, less_eq)    \
+	PROCESS_OP(>=, greater_eq) \
+	PROCESS_OP(+, add)         \
+	PROCESS_OP(-, subtract)    \
+	PROCESS_OP(/, divide)      \
+	PROCESS_OP(*, multiply)
 
-template< typename VariantA, typename VariantB > bool operator>(const VariantA &lhs, const VariantB &rhs) {
-	return details::variant_converter< VariantA >::toVariant(lhs)
-		   > details::variant_converter< VariantB >::toVariant(rhs);
-}
+#define PROCESS_OP(the_op, name)                                                                                  \
+	template< typename Variant, typename = enable_if_polymorphic_variant_t< Variant > >                           \
+	bool operator the_op(const Variant &lhs, const Variant &rhs) {                                                \
+		static_assert(details::has_##name##_v< typename Variant::base_type >,                                     \
+					  "The base type interface does not provide the requested operator");                         \
+		return lhs.get() the_op rhs.get();                                                                        \
+	}                                                                                                             \
+	template< typename Variant, typename Base, typename = enable_if_polymorphic_variant_t< Variant >,             \
+			  typename =                                                                                          \
+				  std::enable_if_t< std::is_same_v< typename Variant::base_type, std::decay_t< Base > >, void > > \
+	bool operator the_op(const Variant &lhs, const Base &rhs) {                                                   \
+		static_assert(details::has_##name##_v< typename Variant::base_type >,                                     \
+					  "The base type interface does not provide the requested operator");                         \
+		return lhs.get() the_op rhs;                                                                              \
+	}                                                                                                             \
+	template< typename Variant, typename Base, typename = enable_if_polymorphic_variant_t< Variant >,             \
+			  typename = std::enable_if_t< std::is_same_v< typename Variant::base_type, Base >, void > >          \
+	bool operator the_op(const Base &lhs, const Variant &rhs) {                                                   \
+		static_assert(details::has_##name##_v< typename Variant::base_type >,                                     \
+					  "The base type interface does not provide the requested operator");                         \
+		return lhs the_op rhs.get();                                                                              \
+	}
 
-template< typename VariantA, typename VariantB > bool operator<(const VariantA &lhs, const VariantB &rhs) {
-	return details::variant_converter< VariantA >::toVariant(lhs)
-		   < details::variant_converter< VariantB >::toVariant(rhs);
-}
+BINARY_OPS
 
-template< typename VariantA, typename VariantB > bool operator>=(const VariantA &lhs, const VariantB &rhs) {
-	return details::variant_converter< VariantA >::toVariant(lhs)
-		   >= details::variant_converter< VariantB >::toVariant(rhs);
-}
-
-template< typename VariantA, typename VariantB > bool operator<=(const VariantA &lhs, const VariantB &rhs) {
-	return details::variant_converter< VariantA >::toVariant(lhs)
-		   <= details::variant_converter< VariantB >::toVariant(rhs);
-}
+#undef PROCESS_OP
+#undef BINARY_OPS
 
 } // namespace pv
 
