@@ -128,16 +128,24 @@ ALL_INCREMENT_OPERATORS
 #define DEFINE_ENABLE_IF_HAS_BINARY_OP(name)     \
 	template< typename LHS, typename RHS = LHS > \
 	using enable_if_has_##name##_t = std::enable_if_t< has_##name##_v< LHS, RHS >, void >;
+#define DEFINE_ENABLE_IF_HAS_UNARY_OP(name) \
+	template< typename T > using enable_if_has_##name##_t = std::enable_if_t< has_##name##_v< T >, void >;
 
 #define PROCESS_OPERATOR(the_operator, name) DEFINE_ENABLE_IF_HAS_BINARY_OP(name);
 
 ALL_BINARY_OPERATORS
-ALL_UNARY_OPERATORS
-ALL_INCREMENT_OPERATORS
 ALL_SPECIAL_OPERATORS
 
 #undef PROCESS_OPERATOR
+
+#define PROCESS_OPERATOR(the_operator, name) DEFINE_ENABLE_IF_HAS_UNARY_OP(name);
+
+ALL_UNARY_OPERATORS
+ALL_INCREMENT_OPERATORS
+
+#undef PROCESS_OPERATOR
 #undef DEFINE_ENABLE_IF_HAS_BINARY_OP
+#undef DEFINE_ENABLE_IF_HAS_UNARY_OP
 #undef ALL_BINARY_OPERATORS
 #undef ALL_UNARY_OPERATORS
 #undef ALL_INCREMENT_OPERATORS
