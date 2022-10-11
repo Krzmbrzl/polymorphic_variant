@@ -70,6 +70,9 @@ pv::visit([](auto &&v) { v.base_function(); }, variant);
 
 Only a C++17-compliant compiler is required, that fully supports `std::variant`.
 
+Note: AppleClang v12 has a bug (sometimes) preventing the operator overloads to be disabled, if inappropriate. However, this version is only shipped
+on macOS 10.15, which is (almost) EOL and shouldn't be used anymore. AppleClang v13 (and presumably higher) work as expected.
+
 
 ## Usage
 
