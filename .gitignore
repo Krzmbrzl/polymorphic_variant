@@ -33,3 +33,9 @@
 
 # Build directory
 build/
+
+# compile commands DB
+compile_commands.json
+
+# clangd files
+.clangd/
