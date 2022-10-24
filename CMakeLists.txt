@@ -16,6 +16,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 include(CTest)
+include(dependencies)
 include(variant_uses_shared_storage)
 
 variant_uses_shared_storage(RESULT_VAR USES_SHARED_STORAGE)
@@ -32,6 +33,8 @@ message(STATUS "PV_EXPLOIT_SHARED_STORAGE: ${PV_EXPLOIT_SHARED_STORAGE}")
 
 
 add_library(polymorphic_variant INTERFACE)
+
+include(compiler)
 
 if (PV_EXPLOIT_SHARED_STORAGE)
 	target_compile_definitions(polymorphic_variant INTERFACE "PV_USE_SHARED_VARIANT_STORAGE")
