@@ -52,7 +52,7 @@ namespace details {
 	struct variant_converter<::pv::polymorphic_variant< Base, Types... > & >
 		: variant_converter<::pv::polymorphic_variant< Base, Types... > > {};
 
-}; // namespace details
+} // namespace details
 } // namespace pv
 
 #endif // PV_DETAILS_VARIANTTYPE_HPP_
