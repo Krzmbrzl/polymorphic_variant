@@ -59,8 +59,8 @@ namespace pv::details {
  */
 #define DEFINE_CAN_BINARY_OP(op, name)     \
 	template< typename LHS, typename RHS > \
-	using can_##name##_t = decltype(std::declval< LHS >() op std::declval< RHS >())
-#define DEFINE_CAN_UNARY_OP(op, name) template< typename T > using can_##name##_t = decltype(op std::declval< T >())
+	using can_##name##_t = decltype(std::declval< LHS >() op std::declval< RHS >());
+#define DEFINE_CAN_UNARY_OP(op, name) template< typename T > using can_##name##_t = decltype(op std::declval< T >());
 /**
  * Define type_traits to check whether there exists a binary operator acting on the two given types
  */
@@ -97,22 +97,22 @@ template< typename T > using can_postfix_decrement_t = decltype(std::declval< T 
 
 
 #define PROCESS_OPERATOR(the_operator, name)  \
-	DEFINE_CAN_BINARY_OP(the_operator, name); \
-	DEFINE_HAS_BINARY_OP(name);
+	DEFINE_CAN_BINARY_OP(the_operator, name) \
+	DEFINE_HAS_BINARY_OP(name)
 
 ALL_BINARY_OPERATORS
 
 #undef PROCESS_OPERATOR
 
 #define PROCESS_OPERATOR(the_operator, name) \
-	DEFINE_CAN_UNARY_OP(the_operator, name); \
-	DEFINE_HAS_UNARY_OP(name);
+	DEFINE_CAN_UNARY_OP(the_operator, name) \
+	DEFINE_HAS_UNARY_OP(name)
 
 ALL_UNARY_OPERATORS
 
 #undef PROCESS_OPERATOR
 
-#define PROCESS_OPERATOR(the_operator, name) DEFINE_HAS_UNARY_OP(name);
+#define PROCESS_OPERATOR(the_operator, name) DEFINE_HAS_UNARY_OP(name)
 
 ALL_INCREMENT_OPERATORS
 
@@ -131,14 +131,14 @@ ALL_INCREMENT_OPERATORS
 #define DEFINE_ENABLE_IF_HAS_UNARY_OP(name) \
 	template< typename T > using enable_if_has_##name##_t = std::enable_if_t< has_##name##_v< T >, void >;
 
-#define PROCESS_OPERATOR(the_operator, name) DEFINE_ENABLE_IF_HAS_BINARY_OP(name);
+#define PROCESS_OPERATOR(the_operator, name) DEFINE_ENABLE_IF_HAS_BINARY_OP(name)
 
 ALL_BINARY_OPERATORS
 ALL_SPECIAL_OPERATORS
 
 #undef PROCESS_OPERATOR
 
-#define PROCESS_OPERATOR(the_operator, name) DEFINE_ENABLE_IF_HAS_UNARY_OP(name);
+#define PROCESS_OPERATOR(the_operator, name) DEFINE_ENABLE_IF_HAS_UNARY_OP(name)
 
 ALL_UNARY_OPERATORS
 ALL_INCREMENT_OPERATORS
