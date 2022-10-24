@@ -102,17 +102,30 @@ template< typename T > static void BM_linearSearch_visibleInit(benchmark::State 
 	perform_linear_search< T, true >(state);
 }
 
-BENCHMARK(BM_linearSearch_visibleInit< pv::polymorphic_variant< Animal, Dog, Cat > >)->Range(1, std::pow(8, 6));
-BENCHMARK(BM_linearSearch_visibleInit< Animal >)->Range(1, std::pow(8, 6));
-BENCHMARK(BM_linearSearch_visibleInit< std::variant< Dog, Cat > >)->Range(1, std::pow(8, 6));
+constexpr int64_t constexpr_pow(int64_t base, int64_t exponent) {
+	int64_t result = 1;
+
+	while (exponent > 0) {
+		result *= base;
+		exponent--;
+	}
+
+	return result;
+}
+
+constexpr const int64_t rangeEnd = constexpr_pow(8, 6);
+
+BENCHMARK(BM_linearSearch_visibleInit< pv::polymorphic_variant< Animal, Dog, Cat > >)->Range(1, rangeEnd);
+BENCHMARK(BM_linearSearch_visibleInit< Animal >)->Range(1, rangeEnd);
+BENCHMARK(BM_linearSearch_visibleInit< std::variant< Dog, Cat > >)->Range(1, rangeEnd);
 
 template< typename T > static void BM_linearSearch_hiddenInit(benchmark::State &state) {
 	perform_linear_search< T, false >(state);
 }
 
-BENCHMARK(BM_linearSearch_hiddenInit< pv::polymorphic_variant< Animal, Dog, Cat > >)->Range(1, std::pow(8, 6));
-BENCHMARK(BM_linearSearch_hiddenInit< Animal >)->Range(1, std::pow(8, 6));
-BENCHMARK(BM_linearSearch_hiddenInit< std::variant< Dog, Cat > >)->Range(1, std::pow(8, 6));
+BENCHMARK(BM_linearSearch_hiddenInit< pv::polymorphic_variant< Animal, Dog, Cat > >)->Range(1, rangeEnd);
+BENCHMARK(BM_linearSearch_hiddenInit< Animal >)->Range(1, rangeEnd);
+BENCHMARK(BM_linearSearch_hiddenInit< std::variant< Dog, Cat > >)->Range(1, rangeEnd);
 
 static void BM_linearSearch_devirtualized(benchmark::State &state) {
 	std::random_device dev;
@@ -136,6 +149,6 @@ static void BM_linearSearch_devirtualized(benchmark::State &state) {
 	}
 }
 
-BENCHMARK(BM_linearSearch_devirtualized)->Range(1, std::pow(8, 6));
+BENCHMARK(BM_linearSearch_devirtualized)->Range(1, rangeEnd);
 
 BENCHMARK_MAIN();
