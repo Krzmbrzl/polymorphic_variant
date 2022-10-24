@@ -40,7 +40,18 @@ if (PV_EXPLOIT_SHARED_STORAGE)
 	target_compile_definitions(polymorphic_variant INTERFACE "PV_USE_SHARED_VARIANT_STORAGE")
 endif()
 
-target_include_directories(polymorphic_variant INTERFACE "${PROJECT_SOURCE_DIR}/include")
+# See https://stackoverflow.com/q/74181468
+if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+	# Project is processed as stand-alone (in contrast to being embedded in another project via
+	# e.g. add_subdirectory)
+	set(SYSTEM_SPEC "")
+else()
+	# Declare include dir as "system" to avoid compiler warnings for our code appearing
+	# to downstream users.
+	set(SYSTEM_SPEC "SYSTEM")
+endif()
+
+target_include_directories(polymorphic_variant ${SYSTEM_SPEC} INTERFACE "${PROJECT_SOURCE_DIR}/include")
 target_compile_features(polymorphic_variant INTERFACE cxx_std_17)
 
 add_subdirectory(tests)

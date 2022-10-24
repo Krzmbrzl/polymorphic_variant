@@ -3,11 +3,7 @@ include(CompilerFlags)
 option(PV_DISABLE_WARNINGS "Whether to disable all warnings for this project" OFF)
 option(PV_WARNINGS_AS_ERRORS "Whether to treat all warnings as errors" OFF)
 
-set(DESIRED_FEATURES "")
-if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
-	# Project not used as a submodule/subdirectory in another project
-	list(APPEND DESIRED_FEATURES "ENABLE_MOST_WARNINGS")
-endif()
+set(DESIRED_FEATURES "ENABLE_MOST_WARNINGS")
 
 if (PV_WARNINGS_AS_ERRORS)
 	list(APPEND DESIRED_FEATURES "ENABLE_WARNINGS_AS_ERRORS")
