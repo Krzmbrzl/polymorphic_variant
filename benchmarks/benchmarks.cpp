@@ -58,6 +58,8 @@ static void BM_devirtualized(benchmark::State &state) {
 	}
 }
 
+BENCHMARK(BM_devirtualized);
+
 
 template< typename T, bool visibleInit > void perform_linear_search(benchmark::State &state) {
 	std::random_device dev;
@@ -67,7 +69,7 @@ template< typename T, bool visibleInit > void perform_linear_search(benchmark::S
 	std::vector< typename initializer< T >::storage_type > vec;
 	vec.reserve(state.range(0));
 
-	for (std::size_t i = 0; i < state.range(0); ++i) {
+	for (std::size_t i = 0; i < static_cast< std::size_t >(state.range(0)); ++i) {
 		vec.push_back([&]() {
 			if constexpr (visibleInit) {
 				return initializer< T >::visibleInit(dist(rng));
@@ -120,7 +122,7 @@ static void BM_linearSearch_devirtualized(benchmark::State &state) {
 	std::vector< Dog > vec;
 	vec.reserve(state.range(0));
 
-	for (std::size_t i = 0; i < state.range(0); ++i) {
+	for (std::size_t i = 0; i < static_cast< std::size_t >(state.range(0)); ++i) {
 		vec.push_back(Dog(dist(rng)));
 	}
 
