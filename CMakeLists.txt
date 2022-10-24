@@ -10,7 +10,7 @@ project(polymorphic_variant
 	LANGUAGES "CXX"
 )
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
@@ -37,7 +37,7 @@ if (PV_EXPLOIT_SHARED_STORAGE)
 	target_compile_definitions(polymorphic_variant INTERFACE "PV_USE_SHARED_VARIANT_STORAGE")
 endif()
 
-target_include_directories(polymorphic_variant INTERFACE "${CMAKE_SOURCE_DIR}/include")
+target_include_directories(polymorphic_variant INTERFACE "${PROJECT_SOURCE_DIR}/include")
 target_compile_features(polymorphic_variant INTERFACE cxx_std_17)
 
 add_subdirectory(tests)

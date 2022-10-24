@@ -14,7 +14,7 @@ function(variant_uses_shared_storage)
 		message(FATAL_ERROR "variant_uses_shared_storage: Unrecognized arguments: ${VARIANT_SHARED_UNPARSED_ARGUMENTS}")
 	endif()
 
-	try_run(RUN_RESULT COMPILE_RESULT "${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/cmake/snippets/check_variant_uses_shared_storage.cpp")
+	try_run(RUN_RESULT COMPILE_RESULT "${CMAKE_CURRENT_BINARY_DIR}" "${PROJECT_SOURCE_DIR}/cmake/snippets/check_variant_uses_shared_storage.cpp")
 
 	if (NOT COMPILE_RESULT)
 		message(FATAL_ERROR "variant_uses_shared_storage: Failed to compile code snippet")
