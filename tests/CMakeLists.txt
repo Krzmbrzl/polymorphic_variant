@@ -42,4 +42,5 @@ if (PV_BUILD_TESTS)
 
 	add_subdirectory(main)
 	add_subdirectory(free_functions)
+	add_subdirectory(operators)
 endif()
