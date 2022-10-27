@@ -126,23 +126,23 @@ template< typename T, typename Variant > constexpr std::add_pointer_t< T > get_i
 
 // Binary operators
 
-#define PROCESS_OPERATOR(the_op, name)                                                                     \
-	template< typename Variant, typename = enable_if_polymorphic_variant_t< Variant >,                     \
-			  typename = details::enable_if_has_##name##_t< const typename Variant::base_type > >          \
-	decltype(auto) operator the_op(const Variant &lhs, const Variant &rhs) {                               \
-		return lhs.get() the_op rhs.get();                                                                 \
-	}                                                                                                      \
-	template< typename Variant, typename T, typename = enable_if_polymorphic_variant_t< Variant >,         \
-			  typename = enable_if_not_polymorphic_variant_t< T >,                                         \
-			  typename = details::enable_if_has_##name##_t< const typename Variant::base_type, const T > > \
-	decltype(auto) operator the_op(const Variant &lhs, const T &rhs) {                                     \
-		return lhs.get() the_op rhs;                                                                       \
-	}                                                                                                      \
-	template< typename Variant, typename T, typename = enable_if_polymorphic_variant_t< Variant >,         \
-			  typename = enable_if_not_polymorphic_variant_t< T >,                                         \
-			  typename = details::enable_if_has_##name##_t< const T, const typename Variant::base_type > > \
-	decltype(auto) operator the_op(const T &lhs, const Variant &rhs) {                                     \
-		return lhs the_op rhs.get();                                                                       \
+#define PROCESS_OPERATOR(the_op, name)                                                                         \
+	template< typename Variant, typename = enable_if_polymorphic_variant_t< Variant >,                         \
+			  typename = details::enable_if_has_##name##_t< const typename Variant::base_type & > >            \
+	decltype(auto) operator the_op(const Variant &lhs, const Variant &rhs) {                                   \
+		return lhs.get() the_op rhs.get();                                                                     \
+	}                                                                                                          \
+	template< typename Variant, typename T, typename = enable_if_polymorphic_variant_t< Variant >,             \
+			  typename = enable_if_not_polymorphic_variant_t< T >,                                             \
+			  typename = details::enable_if_has_##name##_t< const typename Variant::base_type &, const T & > > \
+	decltype(auto) operator the_op(const Variant &lhs, const T &rhs) {                                         \
+		return lhs.get() the_op rhs;                                                                           \
+	}                                                                                                          \
+	template< typename Variant, typename T, typename = enable_if_polymorphic_variant_t< Variant >,             \
+			  typename = enable_if_not_polymorphic_variant_t< T >,                                             \
+			  typename = details::enable_if_has_##name##_t< const T &, const typename Variant::base_type & > > \
+	decltype(auto) operator the_op(const T &lhs, const Variant &rhs) {                                         \
+		return lhs the_op rhs.get();                                                                           \
 	}
 
 BINARY_OPS
@@ -151,24 +151,24 @@ BINARY_OPS
 
 // Binary mutating operators
 
-#define PROCESS_OPERATOR(the_op, name)                                                               \
-	template< typename Variant, typename = enable_if_polymorphic_variant_t< Variant >,               \
-			  typename = details::enable_if_has_##name##_t< typename Variant::base_type,             \
-															const typename Variant::base_type > >    \
-	decltype(auto) operator the_op(Variant &lhs, const Variant &rhs) {                               \
-		return lhs.get() the_op rhs.get();                                                           \
-	}                                                                                                \
-	template< typename Variant, typename T, typename = enable_if_polymorphic_variant_t< Variant >,   \
-			  typename = enable_if_not_polymorphic_variant_t< T >,                                   \
-			  typename = details::enable_if_has_##name##_t< typename Variant::base_type, const T > > \
-	decltype(auto) operator the_op(Variant &lhs, const T &rhs) {                                     \
-		return lhs.get() the_op rhs;                                                                 \
-	}                                                                                                \
-	template< typename Variant, typename T, typename = enable_if_polymorphic_variant_t< Variant >,   \
-			  typename = enable_if_not_polymorphic_variant_t< T >,                                   \
-			  typename = details::enable_if_has_##name##_t< T, const typename Variant::base_type > > \
-	decltype(auto) operator the_op(T &lhs, const Variant &rhs) {                                     \
-		return lhs the_op rhs.get();                                                                 \
+#define PROCESS_OPERATOR(the_op, name)                                                                   \
+	template< typename Variant, typename = enable_if_polymorphic_variant_t< Variant >,                   \
+			  typename = details::enable_if_has_##name##_t< typename Variant::base_type &,               \
+															const typename Variant::base_type & > >      \
+	decltype(auto) operator the_op(Variant &lhs, const Variant &rhs) {                                   \
+		return lhs.get() the_op rhs.get();                                                               \
+	}                                                                                                    \
+	template< typename Variant, typename T, typename = enable_if_polymorphic_variant_t< Variant >,       \
+			  typename = enable_if_not_polymorphic_variant_t< T >,                                       \
+			  typename = details::enable_if_has_##name##_t< typename Variant::base_type &, const T & > > \
+	decltype(auto) operator the_op(Variant &lhs, const T &rhs) {                                         \
+		return lhs.get() the_op rhs;                                                                     \
+	}                                                                                                    \
+	template< typename Variant, typename T, typename = enable_if_polymorphic_variant_t< Variant >,       \
+			  typename = enable_if_not_polymorphic_variant_t< T >,                                       \
+			  typename = details::enable_if_has_##name##_t< T &, const typename Variant::base_type & > > \
+	decltype(auto) operator the_op(T &lhs, const Variant &rhs) {                                         \
+		return lhs the_op rhs.get();                                                                     \
 	}
 
 BINARY_MUTATING_OPS
@@ -178,11 +178,11 @@ BINARY_MUTATING_OPS
 
 // Unary operators
 
-#define PROCESS_OPERATOR(the_op, name)                                                            \
-	template< typename Variant, typename = enable_if_polymorphic_variant_t< Variant >,            \
-			  typename = details::enable_if_has_##name##_t< const typename Variant::base_type > > \
-	decltype(auto) operator the_op(const Variant &variant) {                                      \
-		return the_op variant.get();                                                              \
+#define PROCESS_OPERATOR(the_op, name)                                                              \
+	template< typename Variant, typename = enable_if_polymorphic_variant_t< Variant >,              \
+			  typename = details::enable_if_has_##name##_t< const typename Variant::base_type & > > \
+	decltype(auto) operator the_op(const Variant &variant) {                                        \
+		return the_op variant.get();                                                                \
 	}
 
 UNARY_OPS
@@ -195,25 +195,25 @@ UNARY_OPS
 // Special operators
 
 template< typename Variant, typename = enable_if_polymorphic_variant_t< Variant >,
-		  typename = details::enable_if_has_prefix_increment_t< typename Variant::base_type > >
+		  typename = details::enable_if_has_prefix_increment_t< typename Variant::base_type & > >
 decltype(auto) operator++(Variant &variant) {
 	return ++variant.get();
 }
 
 template< typename Variant, typename = enable_if_polymorphic_variant_t< Variant >,
-		  typename = details::enable_if_has_prefix_decrement_t< typename Variant::base_type > >
+		  typename = details::enable_if_has_prefix_decrement_t< typename Variant::base_type & > >
 decltype(auto) operator--(Variant &variant) {
 	return --variant.get();
 }
 
 template< typename Variant, typename = enable_if_polymorphic_variant_t< Variant >,
-		  typename = details::enable_if_has_postfix_increment_t< typename Variant::base_type > >
+		  typename = details::enable_if_has_postfix_increment_t< typename Variant::base_type & > >
 decltype(auto) operator++(Variant &variant, int) {
 	return variant.get()++;
 }
 
 template< typename Variant, typename = enable_if_polymorphic_variant_t< Variant >,
-		  typename = details::enable_if_has_postfix_decrement_t< typename Variant::base_type > >
+		  typename = details::enable_if_has_postfix_decrement_t< typename Variant::base_type & > >
 decltype(auto) operator--(Variant &variant, int) {
 	return variant.get()--;
 }
