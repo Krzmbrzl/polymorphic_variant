@@ -129,20 +129,20 @@ template< typename T, typename Variant > constexpr std::add_pointer_t< T > get_i
 #define PROCESS_OPERATOR(the_op, name)                                                             \
 	template< typename Variant, typename = enable_if_polymorphic_variant_t< Variant >,             \
 			  typename = details::enable_if_has_##name##_t< typename Variant::base_type > >        \
-	auto operator the_op(const Variant &lhs, const Variant &rhs) {                                 \
-		return lhs.get() the_op rhs.get();                                                         \
-	}                                                                                              \
+	decltype(auto) operator the_op(const Variant &lhs, const Variant &rhs) {                               \
+		return lhs.get() the_op rhs.get();                                                                 \
+	}                                                                                                      \
 	template< typename Variant, typename T, typename = enable_if_polymorphic_variant_t< Variant >, \
 			  typename = enable_if_not_polymorphic_variant_t< T >,                                 \
 			  typename = details::enable_if_has_##name##_t< typename Variant::base_type, T > >     \
-	auto operator the_op(const Variant &lhs, const T &rhs) {                                       \
-		return lhs.get() the_op rhs;                                                               \
-	}                                                                                              \
+	decltype(auto) operator the_op(const Variant &lhs, const T &rhs) {                                     \
+		return lhs.get() the_op rhs;                                                                       \
+	}                                                                                                      \
 	template< typename Variant, typename T, typename = enable_if_polymorphic_variant_t< Variant >, \
 			  typename = enable_if_not_polymorphic_variant_t< T >,                                 \
 			  typename = details::enable_if_has_##name##_t< T, typename Variant::base_type > >     \
-	auto operator the_op(const T &lhs, const Variant &rhs) {                                       \
-		return lhs the_op rhs.get();                                                               \
+	decltype(auto) operator the_op(const T &lhs, const Variant &rhs) {                                     \
+		return lhs the_op rhs.get();                                                                       \
 	}
 
 BINARY_OPS
@@ -155,8 +155,8 @@ BINARY_OPS
 #define PROCESS_OPERATOR(the_op, name)                                                      \
 	template< typename Variant, typename = enable_if_polymorphic_variant_t< Variant >,      \
 			  typename = details::enable_if_has_##name##_t< typename Variant::base_type > > \
-	auto operator the_op(const Variant &variant) {                                          \
-		return the_op variant.get();                                                        \
+	decltype(auto) operator the_op(const Variant &variant) {                                      \
+		return the_op variant.get();                                                              \
 	}
 
 UNARY_OPS
@@ -169,13 +169,13 @@ UNARY_OPS
 
 template< typename Variant, typename = enable_if_polymorphic_variant_t< Variant >,
 		  typename = details::enable_if_has_postfix_increment_t< typename Variant::base_type > >
-auto operator++(const Variant &variant, int) {
+decltype(auto) operator++(Variant &variant, int) {
 	return variant.get()++;
 }
 
 template< typename Variant, typename = enable_if_polymorphic_variant_t< Variant >,
 		  typename = details::enable_if_has_postfix_decrement_t< typename Variant::base_type > >
-auto operator--(const Variant &variant, int) {
+decltype(auto) operator--(Variant &variant, int) {
 	return variant.get()--;
 }
 
