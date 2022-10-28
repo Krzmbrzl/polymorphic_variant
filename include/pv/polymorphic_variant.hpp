@@ -205,6 +205,10 @@ public:
 		std::swap(m_base_offset, rhs.m_base_offset);
 	}
 
+	operator base_type &() { return get(); }
+
+	operator const base_type &() const { return get(); }
+
 	template< typename Index, typename = details::enable_if_has_subscript_t< base_type, Index > >
 	auto operator[](Index idx) {
 		return get()[idx];

@@ -84,3 +84,14 @@ TEST(main, move) {
 	ASSERT_EQ(variant1->get_test(), Derived2::test_value);
 	ASSERT_EQ(variant2->get_test(), Derived1::test_value);
 }
+
+int func(const Base &base) {
+	return base.get_test();
+}
+
+TEST(main, implicit_conversion) {
+	pv::polymorphic_variant< Base, Derived1, Base, Derived2 > variant(Derived1{});
+
+	// The variant should be implicitly convertible to a base-class reference
+	ASSERT_EQ(func(variant), Derived1::test_value);
+}
