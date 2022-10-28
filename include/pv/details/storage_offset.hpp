@@ -26,7 +26,7 @@ template< typename ActiveType = void, typename... Types > struct storage_offset 
 			offset = reinterpret_cast< const unsigned char * >(&std::get< ActiveType >(variant))
 					 - reinterpret_cast< const unsigned char * >(&variant);
 		} else {
-			offset = reinterpret_cast< const unsigned char * >(std::visit([](auto &&value) { return &value; }, variant))
+			offset = std::visit([](auto &&value) { return reinterpret_cast< const unsigned char * >(&value); }, variant)
 					 - reinterpret_cast< const unsigned char * >(&variant);
 		}
 
