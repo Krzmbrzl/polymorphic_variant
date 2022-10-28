@@ -56,3 +56,31 @@ TEST(main, get) {
 		ASSERT_EQ(derivedRef.derived2Field, Derived2::field_value);
 	}
 }
+
+TEST(main, copy) {
+	// Test that each variant will refer to its own data (instead of ending up sharing data, due to some messed up
+	// base-pointer logic)
+	pv::polymorphic_variant< Base, Derived1, Base, Derived2 > variant1(Derived1{});
+
+	ASSERT_EQ(variant1->get_test(), Derived1::test_value);
+
+	pv::polymorphic_variant< Base, Derived1, Base, Derived2 > variant2 = variant1;
+	variant1                                                           = Derived2{};
+
+	ASSERT_EQ(variant1->get_test(), Derived2::test_value);
+	ASSERT_EQ(variant2->get_test(), Derived1::test_value);
+}
+
+TEST(main, move) {
+	// Test that each variant will refer to its own data (instead of ending up sharing data, due to some messed up
+	// base-pointer logic)
+	pv::polymorphic_variant< Base, Derived1, Base, Derived2 > variant1(Derived1{});
+
+	ASSERT_EQ(variant1->get_test(), Derived1::test_value);
+
+	pv::polymorphic_variant< Base, Derived1, Base, Derived2 > variant2 = std::move(variant1);
+	variant1                                                           = Derived2{};
+
+	ASSERT_EQ(variant1->get_test(), Derived2::test_value);
+	ASSERT_EQ(variant2->get_test(), Derived1::test_value);
+}

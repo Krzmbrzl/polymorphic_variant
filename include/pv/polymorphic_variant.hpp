@@ -7,7 +7,7 @@
 
 #include "details/has_operator.hpp"
 #include "details/is_variant.hpp"
-#include "details/storage_ptr.hpp"
+#include "details/storage_offset.hpp"
 #include "details/variadic_parameter_helper.hpp"
 
 #include <cassert>
@@ -57,46 +57,44 @@ public:
 	// Constructors (same as for std::variant)
 	constexpr polymorphic_variant()
 		: m_variant(),
-		  m_base_ptr(
-			  details::storage_ptr< Base, typename details::first_variadic_parameter< Types... >::type, Types... >::get(
+		  m_base_offset(
+			  details::storage_offset< typename details::first_variadic_parameter< Types... >::type, Types... >::get(
 				  m_variant)) {}
 
 	constexpr polymorphic_variant(const self_type &other) = default;
 
 	constexpr polymorphic_variant(self_type &&other)
-		: m_variant(std::move(other.m_variant)), m_base_ptr(other.m_base_ptr) {
-		other.m_base_ptr = nullptr;
-	}
+		: m_variant(std::move(other.m_variant)), m_base_offset(other.m_base_offset) {}
 
 	template< typename T, typename = disable_if_self_type_t< T >, typename = disable_if_variant_type_t< T > >
 	constexpr explicit polymorphic_variant(T &&t)
 		: m_variant(std::forward< T >(t)),
-		  m_base_ptr(details::storage_ptr< Base, typename std::decay_t< T >, Types... >::get(m_variant)) {}
+		  m_base_offset(details::storage_offset< typename std::decay_t< T >, Types... >::get(m_variant)) {}
 
 	template< typename T, typename... Args, typename = disable_if_self_type_t< T >,
 			  typename = disable_if_variant_type_t< T > >
 	constexpr explicit polymorphic_variant(std::in_place_type_t< T >, Args &&... args)
 		: m_variant(std::in_place_type< T >, args...),
-		  m_base_ptr(details::storage_ptr< Base, typename std::decay_t< T >, Types... >::get(m_variant)) {}
+		  m_base_offset(details::storage_offset< typename std::decay_t< T >, Types... >::get(m_variant)) {}
 
 	template< typename T, typename U, typename... Args, typename = disable_if_self_type_t< T >,
 			  typename = disable_if_variant_type_t< T > >
 	constexpr explicit polymorphic_variant(std::in_place_type_t< T >, std::initializer_list< U > il, Args &&... args)
 		: m_variant(std::in_place_type< T >, std::forward(il), args...),
-		  m_base_ptr(details::storage_ptr< Base, typename std::decay_t< T >, Types... >::get(m_variant)) {}
+		  m_base_offset(details::storage_offset< typename std::decay_t< T >, Types... >::get(m_variant)) {}
 
 	template< std::size_t I, typename... Args >
 	constexpr explicit polymorphic_variant(std::in_place_index_t< I >, Args &&... args)
 		: m_variant(std::in_place_index< I >, args...),
-		  m_base_ptr(
-			  details::storage_ptr< Base, typename std::variant_alternative_t< I, variant_type >, Types... >::get(
+		  m_base_offset(
+			  details::storage_offset< typename std::variant_alternative_t< I, variant_type >, Types... >::get(
 				  m_variant)) {}
 
 	template< std::size_t I, typename U, typename... Args >
 	constexpr explicit polymorphic_variant(std::in_place_index_t< I >, std::initializer_list< U > il, Args &&... args)
 		: m_variant(std::in_place_index< I >, std::forward(il), args...),
-		  m_base_ptr(
-			  details::storage_ptr< Base, typename std::variant_alternative_t< I, variant_type >, Types... >::get(
+		  m_base_offset(
+			  details::storage_offset< typename std::variant_alternative_t< I, variant_type >, Types... >::get(
 				  m_variant)) {}
 
 	~polymorphic_variant() = default;
@@ -107,36 +105,36 @@ public:
 	 * Gets the stored value as a base-class reference
 	 */
 	constexpr Base &get() noexcept {
-		assert(m_base_ptr);
+		assert(m_base_offset < sizeof(self_type));
 		assert(!m_variant.valueless_by_exception());
-		return *m_base_ptr;
+		return *reinterpret_cast< base_type * >(reinterpret_cast< unsigned char * >(this) + m_base_offset);
 	}
 
 	/**
 	 * Gets the stored value as a base-class reference
 	 */
 	constexpr const Base &get() const noexcept {
-		assert(m_base_ptr);
+		assert(m_base_offset < sizeof(self_type));
 		assert(!m_variant.valueless_by_exception());
-		return *m_base_ptr;
+		return *reinterpret_cast< const base_type * >(reinterpret_cast< const unsigned char * >(this) + m_base_offset);
 	}
 
 	/**
 	 * Accesses the currently stored object via the base-class interface
 	 */
 	constexpr Base *operator->() noexcept {
-		assert(m_base_ptr);
+		assert(m_base_offset < sizeof(self_type));
 		assert(!m_variant.valueless_by_exception());
-		return m_base_ptr;
+		return reinterpret_cast< base_type * >(reinterpret_cast< unsigned char * >(this) + m_base_offset);
 	}
 
 	/**
 	 * Accesses the currently stored object via the base-class interface
 	 */
 	constexpr const Base *operator->() const noexcept {
-		assert(m_base_ptr);
+		assert(m_base_offset < sizeof(self_type));
 		assert(!m_variant.valueless_by_exception());
-		return m_base_ptr;
+		return reinterpret_cast< const base_type * >(reinterpret_cast< const unsigned char * >(this) + m_base_offset);
 	}
 
 	/**
@@ -159,7 +157,7 @@ public:
 	template< typename T > polymorphic_variant &operator=(T &&t) {
 		m_variant = std::forward< T >(t);
 
-		details::storage_ptr< Base, void, Types... >::update(m_base_ptr, m_variant);
+		details::storage_offset< void, Types... >::update(m_base_offset, m_variant);
 
 		return *this;
 	}
@@ -170,7 +168,7 @@ public:
 	template< typename T, typename... Args > T &emplace(Args &&... args) {
 		T &ref = m_variant.template emplace< T >(args...);
 
-		details::storage_ptr< Base, void, Types... >::update(m_base_ptr, m_variant);
+		details::storage_offset< void, Types... >::update(m_base_offset, m_variant);
 
 		return ref;
 	}
@@ -178,7 +176,7 @@ public:
 	template< typename T, typename U, typename... Args > T &emplace(std::initializer_list< U > il, Args &&... args) {
 		T &ref = m_variant.template emplace< T >(std::forward< std::initializer_list< U > >(il), args...);
 
-		details::storage_ptr< Base, void, Types... >::update(m_base_ptr, m_variant);
+		details::storage_offset< void, Types... >::update(m_base_offset, m_variant);
 
 		return ref;
 	}
@@ -187,7 +185,7 @@ public:
 	std::variant_alternative_t< I, variant_type > &emplace(Args &&... args) {
 		std::variant_alternative_t< I, variant_type > &ref = m_variant.template emplace< I >(args...);
 
-		details::storage_ptr< Base, void, Types... >::update(m_base_ptr, m_variant);
+		details::storage_offset< void, Types... >::update(m_base_offset, m_variant);
 
 		return ref;
 	}
@@ -197,14 +195,14 @@ public:
 		std::variant_alternative_t< I, variant_type > &ref =
 			m_variant.template emplace< I >(std::forward< std::initializer_list< U > >(il), args...);
 
-		details::storage_ptr< Base, void, Types... >::update(m_base_ptr, m_variant);
+		details::storage_offset< void, Types... >::update(m_base_offset, m_variant);
 
 		return ref;
 	}
 
 	void swap(polymorphic_variant &rhs) {
 		m_variant.swap(rhs.m_variant);
-		std::swap(m_base_ptr, rhs.m_base_ptr);
+		std::swap(m_base_offset, rhs.m_base_offset);
 	}
 
 	template< typename Index, typename = details::enable_if_has_subscript_t< base_type, Index > >
@@ -214,7 +212,7 @@ public:
 
 private:
 	variant_type m_variant;
-	Base *m_base_ptr = nullptr;
+	std::size_t m_base_offset = 0;
 };
 
 } // namespace pv
