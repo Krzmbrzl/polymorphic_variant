@@ -25,7 +25,7 @@ class Dog : public Animal {
 public:
 	int member = 0;
 	Dog() = default;
-	Dog(int i) : member(i) {}
+	Dog(int i) : Animal(), member(i) {}
 
 	std::string make_noise() const override { return "bark"; }
 
@@ -36,7 +36,7 @@ class Cat : public Animal {
 public:
 	int member = 0;
 	Cat() = default;
-	Cat(int i) : member(i) {}
+	Cat(int i) : Animal(), member(i) {}
 
 	std::string make_noise() const override { return "miau"; }
 
