@@ -7,6 +7,8 @@
 #include <gtest/gtest.h>
 #include <test_definitions.hpp>
 
+#include <algorithm>
+
 TEST(free_functions, visit) {
 	pv::polymorphic_variant< Base, Base, Derived1, Derived2 > variant(Derived1{ 4 });
 
@@ -71,4 +73,55 @@ TEST(free_functions, compare) {
 	ASSERT_NE(variant2, variant1);
 	ASSERT_NE(variant2.get(), variant1);
 	ASSERT_NE(variant2, variant1.get());
+}
+
+struct Number {
+	virtual float getValue() const = 0;
+};
+struct Int : Number {
+	Int(int val) : value(val) {}
+	int value = 0;
+	float getValue() const override { return value; }
+};
+struct Float : Number {
+	Float(float val) : value(val) {}
+	float value = 0;
+	float getValue() const override { return value; }
+};
+
+bool operator==(const Number &lhs, const Number &rhs) {
+	return lhs.getValue() == rhs.getValue();
+}
+bool operator==(const Number &lhs, int rhs) {
+	return lhs.getValue() == rhs;
+}
+bool operator==(int lhs, const Number &rhs) {
+	return lhs == rhs.getValue();
+}
+bool operator<(const Number &lhs, const Number &rhs) {
+	return lhs.getValue() < rhs.getValue();
+}
+
+TEST(free_functions, stl_integration) {
+	using poly_number = pv::polymorphic_variant< Number, Int, Float >;
+
+	std::vector< poly_number > firstList  = { poly_number(Int{ 3 }), poly_number(Int{ 2 }), poly_number(Float{ 5 }) };
+	std::vector< poly_number > secondList = { poly_number(Float{ 2 }), poly_number(Int{ 5 }), poly_number(Float{ 3 }) };
+	std::vector< int > nativeList         = { 2, 3, 5 };
+
+	ASSERT_FALSE(std::equal(firstList.begin(), firstList.end(), secondList.begin(), secondList.end()));
+	ASSERT_FALSE(std::equal(firstList.begin(), firstList.end(), nativeList.begin(), nativeList.end()));
+
+	std::sort(firstList.begin(), firstList.end());
+	std::sort(secondList.begin(), secondList.end());
+
+	ASSERT_TRUE(std::equal(firstList.begin(), firstList.end(), secondList.begin(), secondList.end()));
+	ASSERT_TRUE(std::equal(firstList.begin(), firstList.end(), nativeList.begin(), nativeList.end()));
+
+	std::reverse(secondList.begin(), secondList.end());
+
+	ASSERT_FALSE(std::equal(firstList.begin(), firstList.end(), secondList.begin(), secondList.end()));
+
+	ASSERT_TRUE(std::is_permutation(firstList.begin(), firstList.end(), secondList.begin()));
+	ASSERT_TRUE(std::is_permutation(firstList.begin(), firstList.end(), nativeList.begin()));
 }
