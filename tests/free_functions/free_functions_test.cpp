@@ -81,7 +81,7 @@ struct Number {
 struct Int : Number {
 	Int(int val) : value(val) {}
 	int value = 0;
-	float getValue() const override { return value; }
+	float getValue() const override { return static_cast< float >(value); }
 };
 struct Float : Number {
 	Float(float val) : value(val) {}
