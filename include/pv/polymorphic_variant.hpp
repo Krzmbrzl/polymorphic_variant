@@ -25,6 +25,15 @@ namespace pv {
  * Thus, effectively this class represents a way to obtain value-semantics for a set of polymorphic types.
  */
 template< typename Base, typename... Types > class polymorphic_variant {
+public:
+	/**
+	 * The type of the underlying variant object
+	 */
+	using variant_type = std::variant< Types... >;
+
+	using base_type = std::decay_t< Base >;
+
+
 private:
 	using self_type = ::pv::polymorphic_variant< Base, Types... >;
 
@@ -33,6 +42,9 @@ private:
 	template< typename T > using disable_if_self_type_t = std::enable_if_t< !is_self_type_v< T >, self_type >;
 
 	template< typename T > using disable_if_variant_type_t = std::enable_if_t< !details::is_variant_v< T >, T >;
+
+	template< typename T >
+	using disable_if_incompatible_t = std::enable_if_t< std::is_assignable_v< variant_type, T > >;
 
 public:
 	// Ensure that Types contains at least one type
@@ -44,14 +56,6 @@ public:
 	static_assert((!std::is_pointer_v< Types > && ...), "None of the types may be given as a pointer");
 	// Ensure that all types in Types actually inherit from Base
 	static_assert((std::is_convertible_v< Types &, Base & > && ...), "All types must publicly inherit from Base");
-
-
-	/**
-	 * The type of the underlying variant object
-	 */
-	using variant_type = std::variant< Types... >;
-
-	using base_type = std::decay_t< Base >;
 
 
 	// Constructors (same as for std::variant)
@@ -67,7 +71,7 @@ public:
 		: m_variant(std::move(other.m_variant)), m_base_offset(other.m_base_offset) {}
 
 	template< typename T, typename = disable_if_self_type_t< T >, typename = disable_if_variant_type_t< T >,
-			  typename = std::enable_if_t< std::is_assignable_v< variant_type, T > > >
+			  typename = disable_if_incompatible_t< T > >
 	constexpr explicit polymorphic_variant(T &&t)
 		: m_variant(std::forward< T >(t)),
 		  m_base_offset(details::storage_offset< typename std::decay_t< T >, Types... >::get(m_variant)) {}
@@ -155,8 +159,7 @@ public:
 
 	constexpr polymorphic_variant &operator=(polymorphic_variant &&rhs) = default;
 
-	template< typename T, typename = disable_if_self_type_t< T >,
-			  typename = std::enable_if_t< std::is_assignable_v< variant_type, T > > >
+	template< typename T, typename = disable_if_self_type_t< T >, typename = disable_if_incompatible_t< T > >
 	polymorphic_variant &operator=(T &&t) {
 		m_variant = std::forward< T >(t);
 
