@@ -154,7 +154,7 @@ public:
 
 	constexpr polymorphic_variant &operator=(polymorphic_variant &&rhs) = default;
 
-	template< typename T > polymorphic_variant &operator=(T &&t) {
+	template< typename T, typename = disable_if_self_type_t< T > > polymorphic_variant &operator=(T &&t) {
 		m_variant = std::forward< T >(t);
 
 		details::storage_offset< void, Types... >::update(m_base_offset, m_variant);
