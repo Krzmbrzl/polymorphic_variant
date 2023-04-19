@@ -72,7 +72,7 @@ public:
 
 	template< typename T, typename = disable_if_self_type_t< T >, typename = disable_if_variant_type_t< T >,
 			  typename = disable_if_incompatible_t< T > >
-	constexpr explicit polymorphic_variant(T &&t)
+	constexpr polymorphic_variant(T &&t)
 		: m_variant(std::forward< T >(t)),
 		  m_base_offset(details::storage_offset< typename std::decay_t< T >, Types... >::get(m_variant)) {}
 
