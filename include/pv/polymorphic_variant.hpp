@@ -66,9 +66,7 @@ public:
 				  m_variant)) {}
 
 	constexpr polymorphic_variant(const self_type &other) = default;
-
-	constexpr polymorphic_variant(self_type &&other)
-		: m_variant(std::move(other.m_variant)), m_base_offset(other.m_base_offset) {}
+	constexpr polymorphic_variant(self_type &&other)      = default;
 
 	template< typename T, typename = disable_if_self_type_t< T >, typename = disable_if_variant_type_t< T >,
 			  typename = disable_if_incompatible_t< T > >
