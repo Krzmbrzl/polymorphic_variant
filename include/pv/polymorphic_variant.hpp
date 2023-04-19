@@ -66,7 +66,8 @@ public:
 	constexpr polymorphic_variant(self_type &&other)
 		: m_variant(std::move(other.m_variant)), m_base_offset(other.m_base_offset) {}
 
-	template< typename T, typename = disable_if_self_type_t< T >, typename = disable_if_variant_type_t< T > >
+	template< typename T, typename = disable_if_self_type_t< T >, typename = disable_if_variant_type_t< T >,
+			  typename = std::enable_if_t< std::is_assignable_v< variant_type, T > > >
 	constexpr explicit polymorphic_variant(T &&t)
 		: m_variant(std::forward< T >(t)),
 		  m_base_offset(details::storage_offset< typename std::decay_t< T >, Types... >::get(m_variant)) {}
