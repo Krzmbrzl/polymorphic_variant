@@ -18,4 +18,6 @@ get_compiler_flags(
 	OUTPUT_VARIABLE COMPILER_FLAGS
 )
 
-target_compile_options(polymorphic_variant INTERFACE ${COMPILER_FLAGS})
+add_library(polymorphic_variant_compiler_flags INTERFACE)
+
+target_compile_options(polymorphic_variant_compiler_flags INTERFACE ${COMPILER_FLAGS})

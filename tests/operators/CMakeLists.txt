@@ -4,6 +4,6 @@
 
 add_executable(operators_test "operators_test.cpp")
 
-target_link_libraries(operators_test PUBLIC polymorphic_variant)
+target_link_libraries(operators_test PUBLIC polymorphic_variant polymorphic_variant_compiler_flags)
 
 register_test(TARGETS operators_test)
