@@ -1,6 +1,11 @@
 include(CompilerFlags)
 
-option(PV_DISABLE_WARNINGS "Whether to disable all warnings for this project" OFF)
+if (PROJECT_IS_TOP_LEVEL)
+	set(DEFAULT_DISABLE_WARNINGS OFF)
+else()
+	set(DEFAULT_DISABLE_WARNINGS ON)
+endif()
+option(PV_DISABLE_WARNINGS "Whether to disable all warnings for this project" ${DEFAULT_DISABLE_WARNINGS})
 option(PV_WARNINGS_AS_ERRORS "Whether to treat all warnings as errors" OFF)
 
 set(DESIRED_FEATURES "ENABLE_MOST_WARNINGS")
