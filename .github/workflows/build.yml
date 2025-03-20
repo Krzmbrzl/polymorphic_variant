@@ -34,7 +34,7 @@ jobs:
           cmakeListsTxtPath: '${{ github.workspace }}/CMakeLists.txt'
           buildDirectory: ${{ env.buildDir }}
           buildWithCMake: true
-          cmakeAppendedArgs: -DPV_BUILD_TESTS=ON -DPV_BUILD_BENCHMARKS=ON -DPV_WARNINGS_AS_ERRORS=ON -DCMAKE_BUILD_TYPE=Debug
+          cmakeAppendedArgs: -G Ninja -DPV_BUILD_TESTS=ON -DPV_BUILD_BENCHMARKS=ON -DPV_WARNINGS_AS_ERRORS=ON -DCMAKE_BUILD_TYPE=Debug
 
       - name: Test 1
         run: cd "${{ env.buildDir }}"; ctest --output-on-failure --timeout 10
@@ -47,7 +47,7 @@ jobs:
           cmakeListsTxtPath: '${{ github.workspace }}/CMakeLists.txt'
           buildDirectory: ${{ env.buildDir }}
           buildWithCMake: true
-          cmakeAppendedArgs: -DPV_BUILD_TESTS=ON -DPV_BUILD_BENCHMARKS=ON -DPV_WARNINGS_AS_ERRORS=ON -DPV_EXPLOIT_SHARED_STORAGE=OFF -DCMAKE_BUILD_TYPE=Debug
+          cmakeAppendedArgs: -G Ninja -DPV_BUILD_TESTS=ON -DPV_BUILD_BENCHMARKS=ON -DPV_WARNINGS_AS_ERRORS=ON -DPV_EXPLOIT_SHARED_STORAGE=OFF -DCMAKE_BUILD_TYPE=Debug
 
       - name: Test 2
         run: cd "${{ env.buildDir }}"; ctest --output-on-failure --timeout 10
