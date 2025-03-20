@@ -2,7 +2,7 @@
 # be found in the LICENSE file at the root of the source tree or at
 # <https://github.com/Krzmbrzl/polymorphic_variant/blob/main/LICENSE>.
 
-option(PV_BUILD_BENCHMARKS "Whether to build benchmarks for the polymorphic_variant class" OFF)
+option(PV_BUILD_BENCHMARKS "Whether to build benchmarks for the polymorphic_variant class" ${PROJECT_IS_TOP_LEVEL})
 
 if (PV_BUILD_BENCHMARKS)
 	include(FetchContent)

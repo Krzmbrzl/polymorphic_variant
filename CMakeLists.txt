@@ -67,10 +67,10 @@ PUBLIC
 target_include_directories(polymorphic_variant SYSTEM INTERFACE "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
 target_compile_features(polymorphic_variant INTERFACE cxx_std_17)
 
-if (PROJECT_IS_TOP_LEVEL)
-	add_subdirectory(tests)
-	add_subdirectory(benchmarks)
-endif()
+
+add_subdirectory(tests)
+add_subdirectory(benchmarks)
+
 
 set(PV_INSTALL_CMAKEPATH "${CMAKE_INSTALL_LIBDIR}/cmake/polymorphic_variant-${PROJECT_VERSION_MAJOR}")
 

@@ -2,7 +2,7 @@
 # be found in the LICENSE file at the root of the source tree or at
 # <https://github.com/Krzmbrzl/polymorphic_variant/blob/main/LICENSE>.
 
-option(PV_BUILD_TESTS "Whether to build tests for the polymorphic_variant class" OFF)
+option(PV_BUILD_TESTS "Whether to build tests for the polymorphic_variant class" ${PROJECT_IS_TOP_LEVEL})
 
 # Helper function for registering test-cases
 function(register_test)
