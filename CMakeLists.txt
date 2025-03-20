@@ -5,7 +5,7 @@
 cmake_minimum_required(VERSION 3.23)
 
 project(polymorphic_variant
-	VERSION 1.4.0
+	VERSION 1.5.0
 	DESCRIPTION "A thin wrapper around a variant that makes it more suitable for use in closed-set polymorphism."
 	LANGUAGES "CXX"
 )
