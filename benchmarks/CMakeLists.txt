@@ -11,7 +11,7 @@ if (PV_BUILD_BENCHMARKS)
 	FetchContent_Declare(
 		GoogleBenchmark
 		GIT_REPOSITORY https://github.com/google/benchmark.git
-		GIT_TAG v1.6.1
+		GIT_TAG v1.9.1
 		EXCLUDE_FROM_ALL
 	)
 	FetchContent_MakeAvailable(GoogleBenchmark)
