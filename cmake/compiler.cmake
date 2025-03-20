@@ -25,4 +25,4 @@ get_compiler_flags(
 
 add_library(polymorphic_variant_compiler_flags INTERFACE)
 
-target_compile_options(polymorphic_variant_compiler_flags INTERFACE ${COMPILER_FLAGS})
+target_compile_options(polymorphic_variant_compiler_flags INTERFACE $<BUILD_INTERFACE:${COMPILER_FLAGS}>)
