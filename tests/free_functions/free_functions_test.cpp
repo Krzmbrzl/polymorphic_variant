@@ -93,10 +93,10 @@ bool operator==(const Number &lhs, const Number &rhs) {
 	return lhs.getValue() == rhs.getValue();
 }
 bool operator==(const Number &lhs, int rhs) {
-	return lhs.getValue() == rhs;
+	return lhs.getValue() == static_cast< float >(rhs);
 }
 bool operator==(int lhs, const Number &rhs) {
-	return lhs == rhs.getValue();
+	return static_cast< float >(lhs) == rhs.getValue();
 }
 bool operator<(const Number &lhs, const Number &rhs) {
 	return lhs.getValue() < rhs.getValue();

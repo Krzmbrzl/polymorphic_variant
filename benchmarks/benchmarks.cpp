@@ -7,7 +7,6 @@
 #include <pv/polymorphic_variant.hpp>
 
 #include <algorithm>
-#include <memory>
 #include <random>
 #include <vector>
 
@@ -67,7 +66,7 @@ template< typename T, bool visibleInit > void perform_linear_search(benchmark::S
 	std::uniform_int_distribution< int > dist(-5, 5);
 
 	std::vector< typename initializer< T >::storage_type > vec;
-	vec.reserve(state.range(0));
+	vec.reserve(static_cast< std::size_t >(state.range(0)));
 
 	for (std::size_t i = 0; i < static_cast< std::size_t >(state.range(0)); ++i) {
 		vec.push_back([&]() {
@@ -133,7 +132,7 @@ static void BM_linearSearch_devirtualized(benchmark::State &state) {
 	std::uniform_int_distribution< int > dist(-5, 5);
 
 	std::vector< Dog > vec;
-	vec.reserve(state.range(0));
+	vec.reserve(static_cast< std::size_t >(state.range(0)));
 
 	for (std::size_t i = 0; i < static_cast< std::size_t >(state.range(0)); ++i) {
 		vec.push_back(Dog(dist(rng)));
