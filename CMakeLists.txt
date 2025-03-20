@@ -2,22 +2,21 @@
 # be found in the LICENSE file at the root of the source tree or at
 # <https://github.com/Krzmbrzl/polymorphic_variant/blob/main/LICENSE>.
 
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.23)
 
 project(polymorphic_variant
-	VERSION 1.0.0
+	VERSION 1.4.0
 	DESCRIPTION "A thin wrapper around a variant that makes it more suitable for use in closed-set polymorphism."
 	LANGUAGES "CXX"
 )
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
-
 include(CTest)
 include(dependencies)
 include(variant_uses_shared_storage)
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 
 variant_uses_shared_storage(RESULT_VAR USES_SHARED_STORAGE)
 
@@ -33,6 +32,7 @@ message(STATUS "PV_EXPLOIT_SHARED_STORAGE: ${PV_EXPLOIT_SHARED_STORAGE}")
 
 
 add_library(polymorphic_variant INTERFACE)
+add_library(polymorphic_variant::polymorphic_variant ALIAS polymorphic_variant)
 
 include(compiler)
 
@@ -51,8 +51,56 @@ else()
 	set(SYSTEM_SPEC "SYSTEM")
 endif()
 
-target_include_directories(polymorphic_variant ${SYSTEM_SPEC} INTERFACE "${PROJECT_SOURCE_DIR}/include")
+file(GLOB_RECURSE PV_HEADER_FILES LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/include/pv/*.hpp")
+target_sources(polymorphic_variant
+PUBLIC
+	FILE_SET headers TYPE HEADERS
+	BASE_DIRS "${PROJECT_SOURCE_DIR}/include"
+	FILES "${PV_HEADER_FILES}"
+)
+target_include_directories(polymorphic_variant SYSTEM INTERFACE "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
 target_compile_features(polymorphic_variant INTERFACE cxx_std_17)
 
-add_subdirectory(tests)
-add_subdirectory(benchmarks)
+if (PROJECT_IS_TOP_LEVEL)
+	add_subdirectory(tests)
+	add_subdirectory(benchmarks)
+endif()
+
+set(PV_INSTALL_CMAKEPATH "${CMAKE_INSTALL_LIBDIR}/cmake/polymorphic_variant-${PROJECT_VERSION_MAJOR}")
+
+install(
+	TARGETS polymorphic_variant
+	EXPORT polymorphic_variant-targets
+	RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+		COMPONENT polymorphic_variant_runtime
+	LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+		COMPONENT polymorphic_variant_runtime
+		NAMELINK_COMPONENT polymorphic_variant_development
+	ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+		COMPONENT polymorphic_variant_development
+	FILE_SET headers
+)
+install(
+	EXPORT polymorphic_variant-targets
+	DESTINATION "${PV_INSTALL_CMAKEPATH}"
+	FILE polymorphic_variant-targets.cmake
+	NAMESPACE polymorphic_variant::
+	COMPONENT polymorphic_variant_development
+)
+
+configure_package_config_file(
+	"${PROJECT_SOURCE_DIR}/cmake/polymorphic_variant-config.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/polymorphic_variant-config.cmake"
+	INSTALL_DESTINATION "${PV_INSTALL_CMAKEPATH}"
+)
+write_basic_package_version_file(
+	"${CMAKE_BINARY_DIR}/polymorphic_variant-config-version.cmake"
+	VERSION ${PROJECT_VERSION}
+	COMPATIBILITY SameMajorVersion
+)
+install(FILES
+	"${CMAKE_CURRENT_BINARY_DIR}/polymorphic_variant-config.cmake"
+	"${CMAKE_CURRENT_BINARY_DIR}/polymorphic_variant-config-version.cmake"
+	DESTINATION "${PV_INSTALL_CMAKEPATH}"
+)
+
+

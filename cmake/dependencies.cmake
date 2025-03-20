@@ -9,6 +9,7 @@ FetchContent_Declare(
 	GIT_REPOSITORY https://github.com/Krzmbrzl/cmake-compiler-flags.git
 	GIT_TAG        v1.1.0
 	GIT_SHALLOW    true
+	EXCLUDE_FROM_ALL
 )
 
 FetchContent_MakeAvailable(cmake_compiler_flags)
