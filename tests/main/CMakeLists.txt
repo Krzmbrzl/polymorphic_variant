@@ -4,6 +4,7 @@
 
 add_executable(main_test "main_test.cpp")
 
-target_link_libraries(main_test PUBLIC polymorphic_variant polymorphic_variant_compiler_flags)
+target_link_libraries(main_test PUBLIC polymorphic_variant)
+set_internal_build_flags(main_test)
 
 register_test(TARGETS main_test)

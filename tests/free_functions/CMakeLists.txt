@@ -4,6 +4,7 @@
 
 add_executable(free_functions_test "free_functions_test.cpp")
 
-target_link_libraries(free_functions_test PUBLIC polymorphic_variant polymorphic_variant_compiler_flags)
+target_link_libraries(free_functions_test PUBLIC polymorphic_variant)
+set_internal_build_flags(free_functions_test)
 
 register_test(TARGETS free_functions_test)

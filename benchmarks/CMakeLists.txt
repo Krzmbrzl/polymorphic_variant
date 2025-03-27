@@ -21,5 +21,6 @@ if (PV_BUILD_BENCHMARKS)
 		"initializer.cpp"
 	)
 
-	target_link_libraries(polymorphic_variant_benchmark PRIVATE benchmark::benchmark polymorphic_variant polymorphic_variant_compiler_flags)
+	target_link_libraries(polymorphic_variant_benchmark PRIVATE benchmark::benchmark polymorphic_variant)
+	set_internal_build_flags(polymorphic_variant_benchmark)
 endif()
