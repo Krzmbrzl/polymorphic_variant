@@ -98,4 +98,8 @@ install(FILES
 	DESTINATION "${PV_INSTALL_CMAKEPATH}"
 )
 
-
+# Make lib consumable from build directory without installing
+export(TARGETS polymorphic_variant
+	NAMESPACE polymorphic_variant::
+	FILE "${CMAKE_CURRENT_BINARY_DIR}/polymorphic_variant-targets.cmake"
+)
