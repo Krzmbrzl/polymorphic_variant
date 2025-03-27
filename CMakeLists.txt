@@ -16,13 +16,13 @@ endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
-
 include(CTest)
-include(dependencies)
-include(variant_uses_shared_storage)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
+
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/dependencies.cmake")
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/variant_uses_shared_storage.cmake")
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/compiler.cmake")
 
 variant_uses_shared_storage(RESULT_VAR USES_SHARED_STORAGE)
 
@@ -39,8 +39,6 @@ message(STATUS "PV_EXPLOIT_SHARED_STORAGE: ${PV_EXPLOIT_SHARED_STORAGE}")
 
 add_library(polymorphic_variant INTERFACE)
 add_library(polymorphic_variant::polymorphic_variant ALIAS polymorphic_variant)
-
-include(compiler)
 
 if (PV_EXPLOIT_SHARED_STORAGE)
 	target_compile_definitions(polymorphic_variant INTERFACE "PV_USE_SHARED_VARIANT_STORAGE")
