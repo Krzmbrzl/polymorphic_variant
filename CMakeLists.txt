@@ -86,7 +86,7 @@ configure_package_config_file(
 	INSTALL_DESTINATION "${PV_INSTALL_CMAKEPATH}"
 )
 write_basic_package_version_file(
-	"${CMAKE_BINARY_DIR}/polymorphic_variant-config-version.cmake"
+	"${CMAKE_CURRENT_BINARY_DIR}/polymorphic_variant-config-version.cmake"
 	VERSION ${PROJECT_VERSION}
 	COMPATIBILITY SameMajorVersion
 )
