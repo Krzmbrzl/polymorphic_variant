@@ -168,9 +168,13 @@ public:
 
 	operator const base_type &() const { return get(); }
 
-	template< typename Index, typename = enable_if_has_subscript_t< base_type, Index > >
-	auto operator[](Index idx) {
-		return get()[idx];
+	template< typename Index, typename = enable_if_has_subscript_t< base_type, Index > > auto operator[](Index &&idx) {
+		return get()[std::forward< Index >(idx)];
+	}
+
+	template< typename Index, typename = enable_if_has_subscript_t< std::add_const_t< base_type >, Index > >
+	auto operator[](Index &&idx) const {
+		return get()[std::forward< Index >(idx)];
 	}
 
 private:
