@@ -26,16 +26,11 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/compiler.cmake")
 
 variant_uses_shared_storage(RESULT_VAR USES_SHARED_STORAGE)
 
-message(STATUS "std::variant uses shared storage: ${USES_SHARED_STORAGE}")
-
 option(
 	PV_EXPLOIT_SHARED_STORAGE
 	"Whether to exploit the fact that std::variant uses a shared storage area for all alternatives"
 	${USES_SHARED_STORAGE}
 )
-
-message(STATUS "PV_EXPLOIT_SHARED_STORAGE: ${PV_EXPLOIT_SHARED_STORAGE}")
-
 
 add_library(polymorphic_variant INTERFACE)
 add_library(polymorphic_variant::polymorphic_variant ALIAS polymorphic_variant)
