@@ -2,7 +2,7 @@
 # be found in the LICENSE file at the root of the source tree or at
 # <https://github.com/Krzmbrzl/polymorphic_variant/blob/main/LICENSE>.
 
-cmake_minimum_required(VERSION 3.23)
+cmake_minimum_required(VERSION 3.23...4.0)
 
 project(polymorphic_variant
 	VERSION 2.0.0
