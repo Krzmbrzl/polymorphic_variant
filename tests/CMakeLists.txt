@@ -32,7 +32,8 @@ if (PV_BUILD_TESTS)
 	FetchContent_Declare(
 		GoogleTest
 		GIT_REPOSITORY https://github.com/google/googletest
-		GIT_TAG v1.16.0
+		GIT_TAG v1.17.0
+		SYSTEM
 		EXCLUDE_FROM_ALL
 	)
 	FetchContent_MakeAvailable(GoogleTest)
