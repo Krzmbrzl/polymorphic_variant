@@ -12,8 +12,8 @@
 #include <cassert>
 #include <initializer_list>
 #include <type_traits>
-#include <variant>
 #include <utility>
+#include <variant>
 
 namespace pv::details {
 
@@ -60,8 +60,7 @@ public:
 	constexpr polymorphic_variant()
 		: m_variant(),
 		  m_base_offset(
-			  storage_offset< typename first_variadic_parameter< Types... >::type, Types... >::get(
-				  m_variant)) {}
+			  storage_offset< typename first_variadic_parameter< Types... >::type, Types... >::get(m_variant)) {}
 
 	// TODO: disable depending on copyability/movability of Base
 	constexpr polymorphic_variant(const self_type &other) = default;
@@ -134,7 +133,7 @@ public:
 
 	constexpr polymorphic_variant &operator=(polymorphic_variant &&rhs) = default;
 
-	template< typename T, typename = enable_if_wrapped_type<T>> polymorphic_variant &operator=(T &&t) {
+	template< typename T, typename = enable_if_wrapped_type< T > > polymorphic_variant &operator=(T &&t) {
 		m_variant = std::forward< T >(t);
 
 		storage_offset< void, Types... >::update(m_base_offset, m_variant);
@@ -143,7 +142,7 @@ public:
 	}
 
 
-	template< typename T, typename... Args, typename = enable_if_wrapped_type<T> > T &emplace(Args &&... args) {
+	template< typename T, typename... Args, typename = enable_if_wrapped_type< T > > T &emplace(Args &&... args) {
 		T &ref = m_variant.template emplace< T >(args...);
 
 		storage_offset< void, Types... >::update(m_base_offset, m_variant);
@@ -151,7 +150,8 @@ public:
 		return ref;
 	}
 
-	template< typename T, typename U, typename... Args, typename = enable_if_wrapped_type<T> > T &emplace(std::initializer_list< U > il, Args &&... args) {
+	template< typename T, typename U, typename... Args, typename = enable_if_wrapped_type< T > >
+	T &emplace(std::initializer_list< U > il, Args &&... args) {
 		T &ref = m_variant.template emplace< T >(std::forward< std::initializer_list< U > >(il), args...);
 
 		storage_offset< void, Types... >::update(m_base_offset, m_variant);

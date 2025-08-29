@@ -72,6 +72,14 @@ TEST(operators, prefix_increment) {
 	ASSERT_EQ(variant->result(), initial + 1);
 }
 
+TEST(operators, subscript) {
+	const variant_type variant1(Derived1{});
+	variant_type variant2(Derived1{});
+
+	ASSERT_EQ(variant1[5], 5);
+	ASSERT_EQ(variant2[5], 5);
+}
+
 
 
 struct Number {
