@@ -27,47 +27,47 @@ namespace {
 //////////////////////// OPERATORS ////////////////////////////
 ///////////////////////////////////////////////////////////////
 
-#define BINARY_OPS                    \
-	PROCESS_OPERATOR(==, equals)      \
-	PROCESS_OPERATOR(!=, unequals)    \
-	PROCESS_OPERATOR(<, less)         \
-	PROCESS_OPERATOR(>, greater)      \
-	PROCESS_OPERATOR(<=, less_eq)     \
-	PROCESS_OPERATOR(>=, greater_eq)  \
-	PROCESS_OPERATOR(+, add)          \
-	PROCESS_OPERATOR(-, subtract)     \
-	PROCESS_OPERATOR(*, multiply)     \
-	PROCESS_OPERATOR(/, divide)       \
-	PROCESS_OPERATOR(%, modulo)       \
-	PROCESS_OPERATOR(&&, and)         \
-	PROCESS_OPERATOR(||, or)          \
-	PROCESS_OPERATOR(&, bitwise_and)  \
-	PROCESS_OPERATOR(|, bitwise_or)   \
-	PROCESS_OPERATOR(^, bitwise_xor)  \
-	PROCESS_OPERATOR(<<, left_shift)  \
-	PROCESS_OPERATOR(>>, right_shift) \
-	PROCESS_OPERATOR(+=, add_assign)
+#define PV_BINARY_OPS                    \
+	PV_PROCESS_OPERATOR(==, equals)      \
+	PV_PROCESS_OPERATOR(!=, unequals)    \
+	PV_PROCESS_OPERATOR(<, less)         \
+	PV_PROCESS_OPERATOR(>, greater)      \
+	PV_PROCESS_OPERATOR(<=, less_eq)     \
+	PV_PROCESS_OPERATOR(>=, greater_eq)  \
+	PV_PROCESS_OPERATOR(+, add)          \
+	PV_PROCESS_OPERATOR(-, subtract)     \
+	PV_PROCESS_OPERATOR(*, multiply)     \
+	PV_PROCESS_OPERATOR(/, divide)       \
+	PV_PROCESS_OPERATOR(%, modulo)       \
+	PV_PROCESS_OPERATOR(&&, and)         \
+	PV_PROCESS_OPERATOR(||, or)          \
+	PV_PROCESS_OPERATOR(&, bitwise_and)  \
+	PV_PROCESS_OPERATOR(|, bitwise_or)   \
+	PV_PROCESS_OPERATOR(^, bitwise_xor)  \
+	PV_PROCESS_OPERATOR(<<, left_shift)  \
+	PV_PROCESS_OPERATOR(>>, right_shift) \
+	PV_PROCESS_OPERATOR(+=, add_assign)
 
-#define BINARY_MUTATING_OPS                  \
-	PROCESS_OPERATOR(-=, subtract_assign)    \
-	PROCESS_OPERATOR(*=, multiply_assign)    \
-	PROCESS_OPERATOR(/=, divide_assign)      \
-	PROCESS_OPERATOR(%=, modulo_assign)      \
-	PROCESS_OPERATOR(&=, bitwise_and_assign) \
-	PROCESS_OPERATOR(|=, bitwise_or_assign)  \
-	PROCESS_OPERATOR(^=, bitwise_xor_assign) \
-	PROCESS_OPERATOR(<<=, left_shift_assign) \
-	PROCESS_OPERATOR(>>=, right_shift_assign)
+#define PV_BINARY_MUTATING_OPS                  \
+	PV_PROCESS_OPERATOR(-=, subtract_assign)    \
+	PV_PROCESS_OPERATOR(*=, multiply_assign)    \
+	PV_PROCESS_OPERATOR(/=, divide_assign)      \
+	PV_PROCESS_OPERATOR(%=, modulo_assign)      \
+	PV_PROCESS_OPERATOR(&=, bitwise_and_assign) \
+	PV_PROCESS_OPERATOR(|=, bitwise_or_assign)  \
+	PV_PROCESS_OPERATOR(^=, bitwise_xor_assign) \
+	PV_PROCESS_OPERATOR(<<=, left_shift_assign) \
+	PV_PROCESS_OPERATOR(>>=, right_shift_assign)
 
-#define UNARY_OPS                    \
-	PROCESS_OPERATOR(+, unary_plus)  \
-	PROCESS_OPERATOR(-, unary_minus) \
-	PROCESS_OPERATOR(!, negation)    \
-	PROCESS_OPERATOR(~, bitwise_negation)
+#define PV_UNARY_OPS                    \
+	PV_PROCESS_OPERATOR(+, unary_plus)  \
+	PV_PROCESS_OPERATOR(-, unary_minus) \
+	PV_PROCESS_OPERATOR(!, negation)    \
+	PV_PROCESS_OPERATOR(~, bitwise_negation)
 
 // Binary operators
 
-#define PROCESS_OPERATOR(the_op, name)                                                                \
+#define PV_PROCESS_OPERATOR(the_op, name)                                                             \
 	template< typename Variant, typename = enable_if_polymorphic_variant_t< Variant >,                \
 			  typename = enable_if_has_##name##_t< const typename Variant::base_type & > >            \
 	decltype(auto) operator the_op(const Variant &lhs, const Variant &rhs) {                          \
@@ -86,13 +86,13 @@ namespace {
 		return lhs the_op rhs.get();                                                                  \
 	}
 
-BINARY_OPS
+PV_BINARY_OPS
 
-#undef PROCESS_OPERATOR
+#undef PV_PROCESS_OPERATOR
 
 // Binary mutating operators
 
-#define PROCESS_OPERATOR(the_op, name)                                                                             \
+#define PV_PROCESS_OPERATOR(the_op, name)                                                                          \
 	template< typename Variant, typename = enable_if_polymorphic_variant_t< Variant >,                             \
 			  typename =                                                                                           \
 				  enable_if_has_##name##_t< typename Variant::base_type &, const typename Variant::base_type & > > \
@@ -112,26 +112,26 @@ BINARY_OPS
 		return lhs the_op rhs.get();                                                                               \
 	}
 
-BINARY_MUTATING_OPS
+PV_BINARY_MUTATING_OPS
 
-#undef PROCESS_OPERATOR
+#undef PV_PROCESS_OPERATOR
 
 
 // Unary operators
 
-#define PROCESS_OPERATOR(the_op, name)                                                     \
+#define PV_PROCESS_OPERATOR(the_op, name)                                                  \
 	template< typename Variant, typename = enable_if_polymorphic_variant_t< Variant >,     \
 			  typename = enable_if_has_##name##_t< const typename Variant::base_type & > > \
 	decltype(auto) operator the_op(const Variant &variant) {                               \
 		return the_op variant.get();                                                       \
 	}
 
-UNARY_OPS
+PV_UNARY_OPS
 
-#undef PROCESS_OPERATOR
-#undef BINARY_OPS
-#undef BINARY_MUTATING_OPS
-#undef UNARY_OPS
+#undef PV_PROCESS_OPERATOR
+#undef PV_BINARY_OPS
+#undef PV_BINARY_MUTATING_OPS
+#undef PV_UNARY_OPS
 
 // Special operators
 
