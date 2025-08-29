@@ -31,7 +31,7 @@ public:
 	virtual void setResult(int result) = 0;
 };
 
-double operator/(const Base &lhs, const Base &rhs) {
+inline double operator/(const Base &lhs, const Base &rhs) {
 	return lhs.result() / static_cast< double >(rhs.factor());
 }
 

@@ -42,6 +42,5 @@ if (PV_BUILD_TESTS)
 	include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 
 	add_subdirectory(main)
-	add_subdirectory(free_functions)
 	add_subdirectory(operators)
 endif()
