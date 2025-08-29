@@ -10,13 +10,13 @@ function(register_test)
 	set(oneValueArgs "")
 	set(multiValueArgs TARGETS)
 
-	cmake_parse_arguments(LIBPERM_TEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+	cmake_parse_arguments(PV_TEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-	if(LIBPERM_TEST_UNPARSED_ARGUMENTS)
-		message(FATAL_ERROR "Unrecognized arguments: ${LIBPERM_TEST_UNPARSED_ARGUMENTS}")
+	if(PV_TEST_UNPARSED_ARGUMENTS)
+		message(FATAL_ERROR "Unrecognized arguments: ${PV_TEST_UNPARSED_ARGUMENTS}")
 	endif()
 
-	foreach(CURRENT IN LISTS LIBPERM_TEST_TARGETS)
+	foreach(CURRENT IN LISTS PV_TEST_TARGETS)
 		if(NOT TARGET "${CURRENT}")
 			message(FATAL_ERROR "\"${CURRENT} is not a target")
 		endif()
