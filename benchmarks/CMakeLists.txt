@@ -5,16 +5,18 @@
 option(PV_BUILD_BENCHMARKS "Whether to build benchmarks for the polymorphic_variant class" ${PROJECT_IS_TOP_LEVEL})
 
 if (PV_BUILD_BENCHMARKS)
-	include(FetchContent)
+	if (NOT TARGET benchmark::benchmark)
+		include(FetchContent)
 
-	set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
-	FetchContent_Declare(
-		GoogleBenchmark
-		GIT_REPOSITORY https://github.com/google/benchmark.git
-		GIT_TAG v1.9.1
-		EXCLUDE_FROM_ALL
-	)
-	FetchContent_MakeAvailable(GoogleBenchmark)
+		set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+		FetchContent_Declare(
+			GoogleBenchmark
+			GIT_REPOSITORY https://github.com/google/benchmark.git
+			GIT_TAG v1.9.4
+			EXCLUDE_FROM_ALL
+		)
+		FetchContent_MakeAvailable(GoogleBenchmark)
+	endif()
 
 	add_executable(polymorphic_variant_benchmark
 		"benchmarks.cpp"
