@@ -27,16 +27,18 @@ function(register_test)
 endfunction()
 
 if (PV_BUILD_TESTS)
-	# Setup Google test
-	include(FetchContent)
-	FetchContent_Declare(
-		GoogleTest
-		GIT_REPOSITORY https://github.com/google/googletest
-		GIT_TAG v1.17.0
-		SYSTEM
-		EXCLUDE_FROM_ALL
-	)
-	FetchContent_MakeAvailable(GoogleTest)
+	if (NOT TARGET gtest_main)
+		# Setup Google test
+		include(FetchContent)
+		FetchContent_Declare(
+			GoogleTest
+			GIT_REPOSITORY https://github.com/google/googletest
+			GIT_TAG v1.17.0
+			SYSTEM
+			EXCLUDE_FROM_ALL
+		)
+		FetchContent_MakeAvailable(GoogleTest)
+	endif()
 
 	include(GoogleTest)
 
