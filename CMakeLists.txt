@@ -32,11 +32,20 @@ option(
 	${USES_SHARED_STORAGE}
 )
 
+option(
+	PV_USE_VISIT_ACCESS
+	"Whether to use std::visit for accessing the underlying variant instead of custom pointer logic"
+	OFF
+)
+
 add_library(polymorphic_variant INTERFACE)
 add_library(polymorphic_variant::polymorphic_variant ALIAS polymorphic_variant)
 
 if (PV_EXPLOIT_SHARED_STORAGE)
 	target_compile_definitions(polymorphic_variant INTERFACE "PV_USE_SHARED_VARIANT_STORAGE")
+endif()
+if (PV_USE_VISIT_ACCESS)
+	target_compile_definitions(polymorphic_variant INTERFACE "PV_USE_VISIT_ACCESS")
 endif()
 
 file(GLOB_RECURSE PV_HEADER_FILES LIST_DIRECTORIES false CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/include/pv/*.hpp")

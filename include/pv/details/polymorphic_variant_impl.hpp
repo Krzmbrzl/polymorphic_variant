@@ -6,8 +6,11 @@
 #define PV_POLYMORPHICVARIANT_IMPL_HPP_
 
 #include "pv/details/has_operator.hpp"
-#include "pv/details/storage_offset.hpp"
-#include "pv/details/variadic_parameter_helper.hpp"
+
+#ifndef PV_USE_VISIT_ACCESS
+#	include "pv/details/storage_offset.hpp"
+#	include "pv/details/variadic_parameter_helper.hpp"
+#endif
 
 #include <cassert>
 #include <initializer_list>
@@ -57,10 +60,7 @@ public:
 
 
 	// Constructors
-	constexpr polymorphic_variant()
-		: m_variant(),
-		  m_base_offset(
-			  storage_offset< typename first_variadic_parameter< Types... >::type, Types... >::get(m_variant)) {}
+	constexpr polymorphic_variant() = default;
 
 	// TODO: disable depending on copyability/movability of Base
 	constexpr polymorphic_variant(const self_type &other) = default;
@@ -70,20 +70,35 @@ public:
 	// Constructor taking one of Types
 	template< typename T, typename = enable_if_wrapped_type< T > >
 	constexpr polymorphic_variant(T &&t)
-		: m_variant(std::forward< T >(t)),
-		  m_base_offset(storage_offset< typename std::decay_t< T >, Types... >::get(m_variant)) {}
+		: m_variant(std::forward< T >(t))
+#ifndef PV_USE_VISIT_ACCESS
+		  ,
+		  m_base_offset(storage_offset< typename std::decay_t< T >, Types... >::get(m_variant))
+#endif
+	{
+	}
 
 	// Constructor creating one of Types in-place from given arguments
 	template< typename T, typename... Args, typename = enable_if_wrapped_type< T > >
 	constexpr explicit polymorphic_variant(std::in_place_type_t< T >, Args &&... args)
-		: m_variant(std::in_place_type_t< T >{}, std::forward< Args >(args)...),
-		  m_base_offset(storage_offset< typename std::decay_t< T >, Types... >::get(m_variant)) {}
+		: m_variant(std::in_place_type_t< T >{}, std::forward< Args >(args)...)
+#ifndef PV_USE_VISIT_ACCESS
+		  ,
+		  m_base_offset(storage_offset< typename std::decay_t< T >, Types... >::get(m_variant))
+#endif
+	{
+	}
 
 	// Constructor creating one of Types in-place from given initializer list and arguments
 	template< typename T, typename U, typename... Args, typename = enable_if_wrapped_type< T > >
 	constexpr explicit polymorphic_variant(std::in_place_type_t< T >, std::initializer_list< U > il, Args &&... args)
-		: m_variant(std::in_place_type_t< T >{}, il, std::forward< Args >(args)...),
-		  m_base_offset(storage_offset< typename std::decay_t< T >, Types... >::get(m_variant)) {}
+		: m_variant(std::in_place_type_t< T >{}, il, std::forward< Args >(args)...)
+#ifndef PV_USE_VISIT_ACCESS
+		  ,
+		  m_base_offset(storage_offset< typename std::decay_t< T >, Types... >::get(m_variant))
+#endif
+	{
+	}
 
 	~polymorphic_variant() = default;
 
@@ -93,37 +108,37 @@ public:
 	 * Gets the stored value as a base-class reference
 	 */
 	constexpr Base &get() noexcept {
-		assert(m_base_offset < sizeof(self_type));
 		assert(!m_variant.valueless_by_exception());
+#ifdef PV_USE_VISIT_ACCESS
+		return std::visit([](auto &&obj) -> base_type & { return obj; }, m_variant);
+#else
+		assert(m_base_offset < sizeof(self_type));
 		return *reinterpret_cast< base_type * >(reinterpret_cast< unsigned char * >(this) + m_base_offset);
+#endif
 	}
 
 	/**
 	 * Gets the stored value as a base-class reference
 	 */
 	constexpr const Base &get() const noexcept {
-		assert(m_base_offset < sizeof(self_type));
 		assert(!m_variant.valueless_by_exception());
+#ifdef PV_USE_VISIT_ACCESS
+		return std::visit([](auto &&obj) -> const base_type & { return obj; }, m_variant);
+#else
+		assert(m_base_offset < sizeof(self_type));
 		return *reinterpret_cast< const base_type * >(reinterpret_cast< const unsigned char * >(this) + m_base_offset);
+#endif
 	}
 
 	/**
 	 * Accesses the currently stored object via the base-class interface
 	 */
-	constexpr Base *operator->() noexcept {
-		assert(m_base_offset < sizeof(self_type));
-		assert(!m_variant.valueless_by_exception());
-		return reinterpret_cast< base_type * >(reinterpret_cast< unsigned char * >(this) + m_base_offset);
-	}
+	constexpr Base *operator->() noexcept { return &get(); }
 
 	/**
 	 * Accesses the currently stored object via the base-class interface
 	 */
-	constexpr const Base *operator->() const noexcept {
-		assert(m_base_offset < sizeof(self_type));
-		assert(!m_variant.valueless_by_exception());
-		return reinterpret_cast< const base_type * >(reinterpret_cast< const unsigned char * >(this) + m_base_offset);
-	}
+	constexpr const Base *operator->() const noexcept { return &get(); }
 
 
 	// TODO: disable depending on copyability/movability of Base
@@ -136,7 +151,9 @@ public:
 	template< typename T, typename = enable_if_wrapped_type< T > > polymorphic_variant &operator=(T &&t) {
 		m_variant = std::forward< T >(t);
 
+#ifndef PV_USE_VISIT_ACCESS
 		storage_offset< void, Types... >::update(m_base_offset, m_variant);
+#endif
 
 		return *this;
 	}
@@ -145,7 +162,9 @@ public:
 	template< typename T, typename... Args, typename = enable_if_wrapped_type< T > > T &emplace(Args &&... args) {
 		T &ref = m_variant.template emplace< T >(args...);
 
+#ifndef PV_USE_VISIT_ACCESS
 		storage_offset< void, Types... >::update(m_base_offset, m_variant);
+#endif
 
 		return ref;
 	}
@@ -154,14 +173,18 @@ public:
 	T &emplace(std::initializer_list< U > il, Args &&... args) {
 		T &ref = m_variant.template emplace< T >(std::forward< std::initializer_list< U > >(il), args...);
 
+#ifndef PV_USE_VISIT_ACCESS
 		storage_offset< void, Types... >::update(m_base_offset, m_variant);
+#endif
 
 		return ref;
 	}
 
 	void swap(polymorphic_variant &rhs) {
 		m_variant.swap(rhs.m_variant);
+#ifndef PV_USE_VISIT_ACCESS
 		std::swap(m_base_offset, rhs.m_base_offset);
+#endif
 	}
 
 	operator base_type &() { return get(); }
@@ -179,7 +202,10 @@ public:
 
 private:
 	variant_type m_variant;
-	std::size_t m_base_offset = 0;
+#ifndef PV_USE_VISIT_ACCESS
+	std::size_t m_base_offset =
+		storage_offset< typename first_variadic_parameter< Types... >::type, Types... >::get(m_variant);
+#endif
 };
 
 } // namespace pv::details
