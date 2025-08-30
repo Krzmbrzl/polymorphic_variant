@@ -50,3 +50,16 @@ jobs:
       - name: Test 2
         run: cd "${{ env.buildDir }}"; ctest --output-on-failure --timeout 10
         shell: bash
+
+      - name: 'Build (using std::visit)'
+        uses: lukka/run-cmake@v3
+        with:
+          cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
+          cmakeListsTxtPath: '${{ github.workspace }}/CMakeLists.txt'
+          buildDirectory: ${{ env.buildDir }}
+          buildWithCMake: true
+          cmakeAppendedArgs: -G Ninja -DPV_BUILD_TESTS=ON -DPV_BUILD_BENCHMARKS=ON -DPV_WARNINGS_AS_ERRORS=ON -DPV_USE_VISIT_ACCESS=ON -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Test 3
+        run: cd "${{ env.buildDir }}"; ctest --output-on-failure --timeout 10
+        shell: bash
