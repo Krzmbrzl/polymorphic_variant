@@ -7,16 +7,14 @@ env:
 
 jobs:
   pr-checks:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
 
-    - uses: actions/checkout@v2
-      with:
-          submodules: 'recursive'
+    - uses: actions/checkout@v5
 
     - name: Check line endings
-      uses: erclu/check-crlf@v1
+      uses: erclu/check-crlf@master
   
     - uses: lukka/get-cmake@latest
 
@@ -34,7 +32,7 @@ jobs:
       shell: bash
 
     - name: Check code formatting
-      uses: jidicula/clang-format-action@v3.3.0
+      uses: jidicula/clang-format-action@v4.15.0
       with:
           clang-format-version: '10'
           check-path: '.'

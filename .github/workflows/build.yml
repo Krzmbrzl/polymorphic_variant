@@ -21,9 +21,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v4
-        with:
-            submodules: 'recursive'
+      - uses: actions/checkout@v5
 
       - uses: lukka/get-cmake@latest
 
