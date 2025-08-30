@@ -48,30 +48,10 @@ and in order to access the base-class's `operator==` (assuming it has one), all 
 variant == ...
 ```
 
-Should you ever require access to the underlying `std::variant` object, you can access it via the `variant()` member function.
-
-
-## Using variant's free functions
-
-The standard C++ library defines several free functions that work on a `std::variant`. Unfortunately, all these functions do not work with
-`pv::polymorphic_variant`, but there are overloads for all these functions inside the `pv` namespace, that should even allow to mix `std::variant`s
-with `pv::polymorphic_variant`s.
-
-```cpp
-pv::polymorphic_variant< Base, Base, Derived1, Derived2 > variant;
-
-pv::visit([](auto &&v) { v.base_function(); }, variant);
-// Of course we now have a more direct way of accessing base_function,
-// so the above example is only to illustrate how pv::visit can be used.
-```
-
 
 ## Requirements
 
 Only a C++17-compliant compiler is required, that fully supports `std::variant`.
-
-Note: AppleClang v12 has a bug (sometimes) preventing the operator overloads to be disabled, if inappropriate. However, this version is only shipped
-on macOS 10.15, which is (almost) EOL and shouldn't be used anymore. AppleClang v13 (and presumably higher) work as expected.
 
 
 ## Usage
@@ -87,12 +67,12 @@ include(FetchContent)
 
 FetchContent_Declare(polymorphic_variant
     GIT_REPOSITORY https://github.com/Krzmbrzl/polymorphic_variant
-	GIT_TAG v1.2.0
+	GIT_TAG v2.0.0
 )
 FetchContent_MakeAvailable(polymorphic_variant)
 ```
-In either case, the library will provide the `polymorphic_variant` target that you can simply link your target(s) to in order for the include-paths
-and compile flags to be set accordingly.
+In either case, the library will provide the `polymorphic_variant::polymorphic_variant` target that you can simply link your target(s) to in order for
+the include-paths and compile flags to be set accordingly.
 
 
 ## Building
@@ -101,111 +81,194 @@ The library itself does not require building as it is header-only. However, if y
 ```bash
 mkdir build
 cd build
-cmake -DPV_BUILD_TESTS=ON ..
+cmake ..
 cmake --build .
 
 # Run the tests
 ctest --output-on-failure
 ```
 
+There are two noteworthy options that define how `polymorphic_variant` will be built:
+- `PV_USE_VISIT_ACCESS` - this controls whether to use `std::visit` when accessing the underlying `std::variant` instead of using pointers. The latter
+  is more efficient from a theoretic point of view but apparently some compilers have gotten really good at optimizing `std::visit` specifically that
+  its use is actually beneficial for things like devirtualization. You can run the benchmarks to see what works best for your case. By default, this
+  version is `OFF`.
+- `PV_EXPLOIT_SHARED_STORAGE` - if using pointer-based access mechanics internally, this controls whether the pointer offsets from the internal
+  variant's address to the address of the currently active element are re-computed every time or assumed to be the same for all elements.
+  Standard-compliant variant implementations should never require a per-element addressing. This option is enabled by default if a test program
+  thinks that this is safe to do (as should be the case).
+
 
 ## Performance
 
-Based on the [benchmarks](./benchmarks) I have performed on my system (Linux, GCC 9.4.0) it seems that accessing a base-class function via
-`polymorphic_variant` is about 40% faster than accessing it via a `std::unique_ptr`. However, in cases in which the compiler can devirtualize the call,
-because it knows the actual type of the accessed object, accessing via `unique_ptr` is about twice as fast as via `polymorphic_variant` because at
-least for me no devirtualization happened when accessing the object via `polymorphic_variant`.
+Based on the [benchmarks](./benchmarks) I have performed on my system (Linux, GCC 14.2.0) it seems that accessing a base-class function via
+`polymorphic_variant` is about as fast as accessing it via a `std::unique_ptr`. However, in cases in which the compiler can devirtualize the call,
+because it knows the actual type of the accessed object, accessing via `unique_ptr` is about twice as fast as via `polymorphic_variant` because GCC
+(atm) won't devirtualize when accessing the object via `polymorphic_variant`.
 
-Compared to using a traditional `std::variant`, using `polymorphic_variant` is always faster (about 20%).
+Clang seems to be significantly better at devirtualizing function calls through a `polymorphic_variant`.
 
 In a test case of searching a `std::vector` of objects for an element that yields a particular value by calling a base-class method, using
-`unique_ptr` seems to yield slightly better performance than `polymorphic_variant` for smaller vector sizes (up to about 512 elements, for which using
-`unique_ptr` is about 2% faster) but for larger vector sizes, the picture changes drastically and `polymorphic_variant` becomes much more efficient
-(up to 260% faster). In these cases, even using `std::variant` is a lot faster than `unique_ptr`, though `std::variant` is still about 40% slower than
-using `polymorphic_variant`.
+`unique_ptr` yields comparable performance as `polymorphic_variant`. However, for large vectors using `polymorphic_variant` becomes significantly
+faster. This is likely due to beneficial cache effects as `polymorphic_variant` stores its values inside instead of holding a pointer to a remote
+memory address (that needs to be looked up and which generally can't be prefetched).
 
-The drastic difference for larger vector sizes is most likely due to cache effects, where the variant-based approaches have the advantage that the
-objects are stored directly in the vector so that while traversing the vector, the objects (whose properties need to be accessed) will end up in
-cache. The `unique_ptr` approach on the other hand only stores pointers and thus have to fetch the objects at an arbitrary memory location, which
-makes it unlikely that the accessed object is in cache.
+Interestingly, modern compilers seem to have become very good at optimizing regular `std::variant` accesses. This makes `std::variant` more performant
+than using `polymorphic_variant`. It is possible that setting `PV_USE_VISIT_ACCESS=ON` when building this library can yield improved performance for
+`polymorphic_variant` but the effect depends on the use-case (for other use-cases performance might degrade) and `std::variant` might still end up
+being faster. So in the end, it seems that there is a performance price to pay for the convenience `polymorphic_variant` provides over `std::variant`
+depending on how specific your compiler's optimizations are to uses of `std::variant` directly.
 
 If you want to build and check the benchmarks yourself, use `-DPV_BUILD_BENCHMARKS=ON` when invoking cmake.
 
 <details>
-	<summary>Benchmark results</summary>
+	<summary>GCC 14.2.0 Benchmark results</summary>
 
 ```
-2022-09-12T09:51:02+02:00
+2025-08-30T14:47:21+02:00
 Running ./benchmarks/polymorphic_variant_benchmark
-Run on (8 X 3487.21 MHz CPU s)
+Run on (8 X 3900 MHz CPU s)
 CPU Caches:
   L1 Data 32 KiB (x4)
   L1 Instruction 32 KiB (x4)
   L2 Unified 256 KiB (x4)
   L3 Unified 8192 KiB (x1)
-Load Average: 0.61, 0.60, 0.87
+Load Average: 0.23, 0.40, 0.70
+***WARNING*** CPU scaling is enabled, the benchmark real time measurements may be noisy and will incur extra overhead.
 ----------------------------------------------------------------------------------------------------------------------------
 Benchmark                                                                                  Time             CPU   Iterations
 ----------------------------------------------------------------------------------------------------------------------------
-BM_visibleInit< pv::polymorphic_variant< Animal, Dog, Cat > >                           2.06 ns         2.06 ns    339474210
-BM_visibleInit< Animal >                                                                1.03 ns         1.03 ns    674996555
-BM_visibleInit< std::variant< Dog, Cat > >                                              2.58 ns         2.58 ns    271188673
-BM_hiddenInit< pv::polymorphic_variant< Animal, Dog, Cat > >                            1.81 ns         1.81 ns    386446207
-BM_hiddenInit< Animal >                                                                 2.58 ns         2.58 ns    271375661
-BM_hiddenInit< std::variant< Dog, Cat > >                                               2.58 ns         2.58 ns    271513655
-BM_linearSearch_visibleInit< pv::polymorphic_variant< Animal, Dog, Cat > >/1            3.86 ns         3.86 ns    180963759
-BM_linearSearch_visibleInit< pv::polymorphic_variant< Animal, Dog, Cat > >/8            14.0 ns         14.0 ns     50026633
-BM_linearSearch_visibleInit< pv::polymorphic_variant< Animal, Dog, Cat > >/64           93.7 ns         93.7 ns      7430824
-BM_linearSearch_visibleInit< pv::polymorphic_variant< Animal, Dog, Cat > >/512           701 ns          701 ns       992938
-BM_linearSearch_visibleInit< pv::polymorphic_variant< Animal, Dog, Cat > >/4096         7877 ns         7877 ns        88412
-BM_linearSearch_visibleInit< pv::polymorphic_variant< Animal, Dog, Cat > >/32768       75677 ns        75665 ns         9192
-BM_linearSearch_visibleInit< pv::polymorphic_variant< Animal, Dog, Cat > >/262144    1536286 ns      1535973 ns          461
-BM_linearSearch_visibleInit< Animal >/1                                                 3.86 ns         3.86 ns    181001013
-BM_linearSearch_visibleInit< Animal >/8                                                 13.3 ns         13.3 ns     52401587
-BM_linearSearch_visibleInit< Animal >/64                                                89.2 ns         89.2 ns      7798969
-BM_linearSearch_visibleInit< Animal >/512                                                684 ns          684 ns      1010620
-BM_linearSearch_visibleInit< Animal >/4096                                             10183 ns        10181 ns        68753
-BM_linearSearch_visibleInit< Animal >/32768                                           208919 ns       208509 ns         3349
-BM_linearSearch_visibleInit< Animal >/262144                                         3986260 ns      3985541 ns          174
-BM_linearSearch_visibleInit< std::variant< Dog, Cat > >/1                               5.15 ns         5.15 ns    133703008
-BM_linearSearch_visibleInit< std::variant< Dog, Cat > >/8                               16.6 ns         16.5 ns     42509335
-BM_linearSearch_visibleInit< std::variant< Dog, Cat > >/64                               113 ns          113 ns      6193792
-BM_linearSearch_visibleInit< std::variant< Dog, Cat > >/512                              836 ns          836 ns       830356
-BM_linearSearch_visibleInit< std::variant< Dog, Cat > >/4096                           10656 ns        10632 ns        65578
-BM_linearSearch_visibleInit< std::variant< Dog, Cat > >/32768                          97575 ns        97551 ns         6968
-BM_linearSearch_visibleInit< std::variant< Dog, Cat > >/262144                       2173203 ns      2172760 ns          319
-BM_linearSearch_hiddenInit< pv::polymorphic_variant< Animal, Dog, Cat > >/1             3.95 ns         3.95 ns    176889618
-BM_linearSearch_hiddenInit< pv::polymorphic_variant< Animal, Dog, Cat > >/8             14.6 ns         14.6 ns     48893922
-BM_linearSearch_hiddenInit< pv::polymorphic_variant< Animal, Dog, Cat > >/64            95.7 ns         95.7 ns      7299376
-BM_linearSearch_hiddenInit< pv::polymorphic_variant< Animal, Dog, Cat > >/512            732 ns          732 ns       942114
-BM_linearSearch_hiddenInit< pv::polymorphic_variant< Animal, Dog, Cat > >/4096          7896 ns         7893 ns        87836
-BM_linearSearch_hiddenInit< pv::polymorphic_variant< Animal, Dog, Cat > >/32768        75723 ns        75701 ns         9196
-BM_linearSearch_hiddenInit< pv::polymorphic_variant< Animal, Dog, Cat > >/262144     1535836 ns      1535364 ns          450
-BM_linearSearch_hiddenInit< Animal >/1                                                  3.87 ns         3.87 ns    180522178
-BM_linearSearch_hiddenInit< Animal >/8                                                  13.4 ns         13.4 ns     52259409
-BM_linearSearch_hiddenInit< Animal >/64                                                 89.5 ns         89.5 ns      7795769
-BM_linearSearch_hiddenInit< Animal >/512                                                 689 ns          689 ns       993027
-BM_linearSearch_hiddenInit< Animal >/4096                                              10365 ns        10363 ns        67535
-BM_linearSearch_hiddenInit< Animal >/32768                                            206674 ns       206641 ns         3376
-BM_linearSearch_hiddenInit< Animal >/262144                                          4038407 ns      4037034 ns          173
-BM_linearSearch_hiddenInit< std::variant< Dog, Cat > >/1                                4.88 ns         4.88 ns    142995270
-BM_linearSearch_hiddenInit< std::variant< Dog, Cat > >/8                                16.5 ns         16.5 ns     42498518
-BM_linearSearch_hiddenInit< std::variant< Dog, Cat > >/64                                111 ns          111 ns      6269956
-BM_linearSearch_hiddenInit< std::variant< Dog, Cat > >/512                               840 ns          840 ns       838201
-BM_linearSearch_hiddenInit< std::variant< Dog, Cat > >/4096                            10952 ns        10953 ns        63588
-BM_linearSearch_hiddenInit< std::variant< Dog, Cat > >/32768                           99285 ns        99285 ns         6621
-BM_linearSearch_hiddenInit< std::variant< Dog, Cat > >/262144                        2297590 ns      2297474 ns          305
-BM_linearSearch_devirtualized/1                                                         1.54 ns         1.54 ns    453493929
-BM_linearSearch_devirtualized/8                                                         5.91 ns         5.91 ns    117701605
-BM_linearSearch_devirtualized/64                                                        29.3 ns         29.3 ns     23822477
-BM_linearSearch_devirtualized/512                                                        464 ns          464 ns      1504664
-BM_linearSearch_devirtualized/4096                                                      4654 ns         4653 ns       150281
-BM_linearSearch_devirtualized/32768                                                    80553 ns        80551 ns         8581
-BM_linearSearch_devirtualized/262144                                                 1213397 ns      1213332 ns          580
+BM_visibleInit< pv::polymorphic_variant< Animal, Dog, Cat > >                           1.84 ns         1.83 ns    384343481
+BM_visibleInit< Animal >                                                                1.03 ns         1.03 ns    674358912
+BM_visibleInit< std::variant< Dog, Cat > >                                              1.04 ns         1.04 ns    671576544
+BM_hiddenInit< pv::polymorphic_variant< Animal, Dog, Cat > >                            2.32 ns         2.32 ns    301752011
+BM_hiddenInit< Animal >                                                                 1.81 ns         1.81 ns    385131510
+BM_hiddenInit< std::variant< Dog, Cat > >                                               1.03 ns         1.03 ns    673643302
+BM_devirtualized                                                                        1.04 ns         1.04 ns    669941564
+BM_linearSearch_visibleInit< pv::polymorphic_variant< Animal, Dog, Cat > >/1            4.13 ns         4.13 ns    169546284
+BM_linearSearch_visibleInit< pv::polymorphic_variant< Animal, Dog, Cat > >/8            13.7 ns         13.7 ns     51154276
+BM_linearSearch_visibleInit< pv::polymorphic_variant< Animal, Dog, Cat > >/64           93.0 ns         93.0 ns      7463540
+BM_linearSearch_visibleInit< pv::polymorphic_variant< Animal, Dog, Cat > >/512           815 ns          815 ns       855156
+BM_linearSearch_visibleInit< pv::polymorphic_variant< Animal, Dog, Cat > >/4096        11892 ns        11890 ns        58860
+BM_linearSearch_visibleInit< pv::polymorphic_variant< Animal, Dog, Cat > >/32768      113085 ns       113076 ns         5860
+BM_linearSearch_visibleInit< pv::polymorphic_variant< Animal, Dog, Cat > >/262144    3099293 ns      3098837 ns          227
+BM_linearSearch_visibleInit< Animal >/1                                                 4.17 ns         4.17 ns    167103591
+BM_linearSearch_visibleInit< Animal >/8                                                 13.2 ns         13.2 ns     52981647
+BM_linearSearch_visibleInit< Animal >/64                                                89.1 ns         89.1 ns      7766628
+BM_linearSearch_visibleInit< Animal >/512                                                684 ns          684 ns      1023369
+BM_linearSearch_visibleInit< Animal >/4096                                             10230 ns        10230 ns        68151
+BM_linearSearch_visibleInit< Animal >/32768                                           205184 ns       205176 ns         3375
+BM_linearSearch_visibleInit< Animal >/262144                                         4005787 ns      4005533 ns          173
+BM_linearSearch_visibleInit< std::variant< Dog, Cat > >/1                               4.38 ns         4.38 ns    159562957
+BM_linearSearch_visibleInit< std::variant< Dog, Cat > >/8                               11.8 ns         11.8 ns     59045207
+BM_linearSearch_visibleInit< std::variant< Dog, Cat > >/64                              71.2 ns         71.2 ns      9618706
+BM_linearSearch_visibleInit< std::variant< Dog, Cat > >/512                              607 ns          607 ns      1138300
+BM_linearSearch_visibleInit< std::variant< Dog, Cat > >/4096                            9453 ns         9451 ns        73450
+BM_linearSearch_visibleInit< std::variant< Dog, Cat > >/32768                          91802 ns        91787 ns         7280
+BM_linearSearch_visibleInit< std::variant< Dog, Cat > >/262144                       2243734 ns      2243450 ns          315
+BM_linearSearch_hiddenInit< pv::polymorphic_variant< Animal, Dog, Cat > >/1             4.63 ns         4.63 ns    151202772
+BM_linearSearch_hiddenInit< pv::polymorphic_variant< Animal, Dog, Cat > >/8             14.7 ns         14.7 ns     47553090
+BM_linearSearch_hiddenInit< pv::polymorphic_variant< Animal, Dog, Cat > >/64            99.3 ns         99.3 ns      7019800
+BM_linearSearch_hiddenInit< pv::polymorphic_variant< Animal, Dog, Cat > >/512            798 ns          798 ns       867042
+BM_linearSearch_hiddenInit< pv::polymorphic_variant< Animal, Dog, Cat > >/4096         11696 ns        11690 ns        59557
+BM_linearSearch_hiddenInit< pv::polymorphic_variant< Animal, Dog, Cat > >/32768       108777 ns       108737 ns         6052
+BM_linearSearch_hiddenInit< pv::polymorphic_variant< Animal, Dog, Cat > >/262144     2938770 ns      2938199 ns          238
+BM_linearSearch_hiddenInit< Animal >/1                                                  4.13 ns         4.13 ns    170030417
+BM_linearSearch_hiddenInit< Animal >/8                                                  13.2 ns         13.2 ns     53195457
+BM_linearSearch_hiddenInit< Animal >/64                                                 88.8 ns         88.8 ns      7828640
+BM_linearSearch_hiddenInit< Animal >/512                                                 676 ns          676 ns      1018613
+BM_linearSearch_hiddenInit< Animal >/4096                                              10057 ns        10057 ns        69017
+BM_linearSearch_hiddenInit< Animal >/32768                                            208723 ns       208719 ns         3327
+BM_linearSearch_hiddenInit< Animal >/262144                                          4056258 ns      4056069 ns          172
+BM_linearSearch_hiddenInit< std::variant< Dog, Cat > >/1                                4.12 ns         4.12 ns    169585500
+BM_linearSearch_hiddenInit< std::variant< Dog, Cat > >/8                                10.5 ns         10.5 ns     66286025
+BM_linearSearch_hiddenInit< std::variant< Dog, Cat > >/64                               53.6 ns         53.6 ns     12787419
+BM_linearSearch_hiddenInit< std::variant< Dog, Cat > >/512                               662 ns          662 ns      1033538
+BM_linearSearch_hiddenInit< std::variant< Dog, Cat > >/4096                             9495 ns         9494 ns        73331
+BM_linearSearch_hiddenInit< std::variant< Dog, Cat > >/32768                           92304 ns        92295 ns         7219
+BM_linearSearch_hiddenInit< std::variant< Dog, Cat > >/262144                        2223290 ns      2223013 ns          312
+BM_linearSearch_devirtualized/1                                                         1.55 ns         1.55 ns    451138413
+BM_linearSearch_devirtualized/8                                                         5.40 ns         5.40 ns    125267607
+BM_linearSearch_devirtualized/64                                                        28.2 ns         28.1 ns     24831312
+BM_linearSearch_devirtualized/512                                                        590 ns          590 ns      1162867
+BM_linearSearch_devirtualized/4096                                                      9162 ns         9158 ns        76068
+BM_linearSearch_devirtualized/32768                                                    54519 ns        54512 ns        12674
+BM_linearSearch_devirtualized/262144                                                 1299856 ns      1299703 ns          538
 ```
 </details>
 
-Preliminary investigations seem to indicate that clang is better at performing devirtualization of member functions when using `polymorphic_variant`,
-leading to better performance. Therefore, if possible, it is recommended to compile your project using this library by clang instead of gcc (or MSVC
-for that matter).
+<details>
+	<summary>Clang 19.1.7 Benchmark results</summary>
+```
+2025-08-30T14:54:25+02:00
+Running ./benchmarks/polymorphic_variant_benchmark
+Run on (8 X 3900 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x4)
+  L1 Instruction 32 KiB (x4)
+  L2 Unified 256 KiB (x4)
+  L3 Unified 8192 KiB (x1)
+Load Average: 1.27, 0.88, 0.79
+***WARNING*** CPU scaling is enabled, the benchmark real time measurements may be noisy and will incur extra overhead.
+----------------------------------------------------------------------------------------------------------------------------
+Benchmark                                                                                  Time             CPU   Iterations
+----------------------------------------------------------------------------------------------------------------------------
+BM_visibleInit< pv::polymorphic_variant< Animal, Dog, Cat > >                           1.59 ns         1.59 ns    402214651
+BM_visibleInit< Animal >                                                                1.55 ns         1.55 ns    452559140
+BM_visibleInit< std::variant< Dog, Cat > >                                              1.56 ns         1.56 ns    451832966
+BM_hiddenInit< pv::polymorphic_variant< Animal, Dog, Cat > >                            1.55 ns         1.55 ns    449718171
+BM_hiddenInit< Animal >                                                                 1.55 ns         1.55 ns    451772192
+BM_hiddenInit< std::variant< Dog, Cat > >                                               1.55 ns         1.55 ns    452602909
+BM_devirtualized                                                                        1.56 ns         1.56 ns    449792581
+BM_linearSearch_visibleInit< pv::polymorphic_variant< Animal, Dog, Cat > >/1            3.88 ns         3.88 ns    180111826
+BM_linearSearch_visibleInit< pv::polymorphic_variant< Animal, Dog, Cat > >/8            14.4 ns         14.4 ns     48259991
+BM_linearSearch_visibleInit< pv::polymorphic_variant< Animal, Dog, Cat > >/64            101 ns          101 ns      6868848
+BM_linearSearch_visibleInit< pv::polymorphic_variant< Animal, Dog, Cat > >/512           801 ns          801 ns       863201
+BM_linearSearch_visibleInit< pv::polymorphic_variant< Animal, Dog, Cat > >/4096        11666 ns        11665 ns        59595
+BM_linearSearch_visibleInit< pv::polymorphic_variant< Animal, Dog, Cat > >/32768      109112 ns       109103 ns         6118
+BM_linearSearch_visibleInit< pv::polymorphic_variant< Animal, Dog, Cat > >/262144    3059592 ns      3059063 ns          241
+BM_linearSearch_visibleInit< Animal >/1                                                 2.86 ns         2.86 ns    243045105
+BM_linearSearch_visibleInit< Animal >/8                                                 12.6 ns         12.6 ns     55661548
+BM_linearSearch_visibleInit< Animal >/64                                                88.4 ns         88.4 ns      7852825
+BM_linearSearch_visibleInit< Animal >/512                                                688 ns          688 ns       999214
+BM_linearSearch_visibleInit< Animal >/4096                                             10168 ns        10168 ns        68536
+BM_linearSearch_visibleInit< Animal >/32768                                           212332 ns       212320 ns         3243
+BM_linearSearch_visibleInit< Animal >/262144                                         4006024 ns      4005703 ns          175
+BM_linearSearch_visibleInit< std::variant< Dog, Cat > >/1                               4.26 ns         4.26 ns    164144849
+BM_linearSearch_visibleInit< std::variant< Dog, Cat > >/8                               14.2 ns         14.2 ns     49198106
+BM_linearSearch_visibleInit< std::variant< Dog, Cat > >/64                               102 ns          102 ns      6838952
+BM_linearSearch_visibleInit< std::variant< Dog, Cat > >/512                              803 ns          803 ns       860913
+BM_linearSearch_visibleInit< std::variant< Dog, Cat > >/4096                            9439 ns         9438 ns        73973
+BM_linearSearch_visibleInit< std::variant< Dog, Cat > >/32768                          91926 ns        91915 ns         7264
+BM_linearSearch_visibleInit< std::variant< Dog, Cat > >/262144                       2129923 ns      2129734 ns          327
+BM_linearSearch_hiddenInit< pv::polymorphic_variant< Animal, Dog, Cat > >/1             3.61 ns         3.61 ns    193801199
+BM_linearSearch_hiddenInit< pv::polymorphic_variant< Animal, Dog, Cat > >/8             14.2 ns         14.2 ns     49224458
+BM_linearSearch_hiddenInit< pv::polymorphic_variant< Animal, Dog, Cat > >/64            97.8 ns         97.7 ns      7094199
+BM_linearSearch_hiddenInit< pv::polymorphic_variant< Animal, Dog, Cat > >/512            757 ns          757 ns       914032
+BM_linearSearch_hiddenInit< pv::polymorphic_variant< Animal, Dog, Cat > >/4096         11541 ns        11541 ns        60302
+BM_linearSearch_hiddenInit< pv::polymorphic_variant< Animal, Dog, Cat > >/32768       108369 ns       108353 ns         6122
+BM_linearSearch_hiddenInit< pv::polymorphic_variant< Animal, Dog, Cat > >/262144     2810828 ns      2810641 ns          249
+BM_linearSearch_hiddenInit< Animal >/1                                                  3.10 ns         3.10 ns    226005677
+BM_linearSearch_hiddenInit< Animal >/8                                                  12.8 ns         12.8 ns     54355800
+BM_linearSearch_hiddenInit< Animal >/64                                                 88.7 ns         88.7 ns      7828191
+BM_linearSearch_hiddenInit< Animal >/512                                                 703 ns          703 ns      1003604
+BM_linearSearch_hiddenInit< Animal >/4096                                              10225 ns        10221 ns        67596
+BM_linearSearch_hiddenInit< Animal >/32768                                            212103 ns       212066 ns         3310
+BM_linearSearch_hiddenInit< Animal >/262144                                          4002696 ns      4002287 ns          175
+BM_linearSearch_hiddenInit< std::variant< Dog, Cat > >/1                                4.26 ns         4.26 ns    164730801
+BM_linearSearch_hiddenInit< std::variant< Dog, Cat > >/8                                14.2 ns         14.2 ns     49126155
+BM_linearSearch_hiddenInit< std::variant< Dog, Cat > >/64                                102 ns          102 ns      6824549
+BM_linearSearch_hiddenInit< std::variant< Dog, Cat > >/512                               776 ns          776 ns       888334
+BM_linearSearch_hiddenInit< std::variant< Dog, Cat > >/4096                             9392 ns         9391 ns        73983
+BM_linearSearch_hiddenInit< std::variant< Dog, Cat > >/32768                           91646 ns        91635 ns         7242
+BM_linearSearch_hiddenInit< std::variant< Dog, Cat > >/262144                        2132448 ns      2132242 ns          324
+BM_linearSearch_devirtualized/1                                                         2.58 ns         2.58 ns    270374282
+BM_linearSearch_devirtualized/8                                                         12.3 ns         12.3 ns     56225872
+BM_linearSearch_devirtualized/64                                                        89.1 ns         89.1 ns      7658959
+BM_linearSearch_devirtualized/512                                                        669 ns          668 ns      1028790
+BM_linearSearch_devirtualized/4096                                                      9547 ns         9545 ns        72477
+BM_linearSearch_devirtualized/32768                                                    67420 ns        67401 ns        10292
+BM_linearSearch_devirtualized/262144                                                 1524086 ns      1523853 ns          463
+```
+</details>
 
