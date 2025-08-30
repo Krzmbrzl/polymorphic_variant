@@ -46,7 +46,12 @@ PUBLIC
 	BASE_DIRS "${PROJECT_SOURCE_DIR}/include"
 	FILES "${PV_HEADER_FILES}"
 )
-target_include_directories(polymorphic_variant SYSTEM INTERFACE "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
+if (PROJECT_IS_TOP_LEVEL)
+	set(PV_SYSTEM "")
+else()
+	set(PV_SYSTEM "SYSTEM")
+endif()
+target_include_directories(polymorphic_variant ${PV_SYSTEM} INTERFACE "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
 target_compile_features(polymorphic_variant INTERFACE cxx_std_17)
 
 
