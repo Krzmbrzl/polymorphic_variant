@@ -22,6 +22,8 @@ public:
 		return *this;
 	}
 
+	int operator[](int i) const { return i; }
+
 	virtual void multiply(int factor) = 0;
 
 	virtual int factor() const = 0;
