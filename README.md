@@ -199,6 +199,7 @@ BM_linearSearch_devirtualized/262144                                            
 
 <details>
 	<summary>Clang 19.1.7 Benchmark results</summary>
+
 ```
 2025-08-30T14:54:25+02:00
 Running ./benchmarks/polymorphic_variant_benchmark
