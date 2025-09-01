@@ -2,6 +2,10 @@
 // be found in the LICENSE file at the root of the source tree or at
 // <https://github.com/Krzmbrzl/polymorphic_variant/blob/main/LICENSE>.
 
+#include <pv/polymorphic_variant.hpp>
+
+#include <type_traits>
+
 class Base {
 public:
 	Base()          = default;
@@ -42,6 +46,9 @@ public:
 inline double operator/(const Base &lhs, const Base &rhs) {
 	return lhs.result() / static_cast< double >(rhs.factor());
 }
+
+// Opt-in to infer operator+
+template<> struct pv::infer_operator_overloads< Base > : std::true_type {};
 
 class Derived1 : public Base {
 public:
