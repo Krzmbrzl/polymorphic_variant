@@ -73,6 +73,17 @@ TEST(operators, add_assign) {
 	ASSERT_EQ(variant1->result(), Derived1::InitialValue + Derived2::InitialValue);
 }
 
+TEST(operators, add) {
+	// Note: There is no operator+ for Base, but there is operator +=
+	// Hence, the latter is used to construct the former for polymorphic_variant uses
+	variant_type variant1(Derived1{});
+	variant_type variant2(Derived2{});
+
+	variant_type result = variant1 + variant2;
+
+	ASSERT_EQ(result->result(), Derived1::InitialValue + Derived2::InitialValue);
+}
+
 TEST(operators, prefix_increment) {
 	variant_type variant(Derived1{});
 

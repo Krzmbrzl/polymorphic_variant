@@ -47,17 +47,17 @@ namespace {
 	PV_PROCESS_OPERATOR(<<, left_shift) \
 	PV_PROCESS_OPERATOR(>>, right_shift)
 
-#define PV_BINARY_MUTATING_OPS                   \
-	PV_PROCESS_OPERATOR(-=, subtract_assign)     \
-	PV_PROCESS_OPERATOR(*=, multiply_assign)     \
-	PV_PROCESS_OPERATOR(/=, divide_assign)       \
-	PV_PROCESS_OPERATOR(%=, modulo_assign)       \
-	PV_PROCESS_OPERATOR(&=, bitwise_and_assign)  \
-	PV_PROCESS_OPERATOR(|=, bitwise_or_assign)   \
-	PV_PROCESS_OPERATOR(^=, bitwise_xor_assign)  \
-	PV_PROCESS_OPERATOR(<<=, left_shift_assign)  \
-	PV_PROCESS_OPERATOR(>>=, right_shift_assign) \
-	PV_PROCESS_OPERATOR(+=, add_assign)
+#define PV_BINARY_MUTATING_OPS                                  \
+	PV_PROCESS_OPERATOR(+=, add_assign, +, add)                 \
+	PV_PROCESS_OPERATOR(-=, subtract_assign, -, subtract)       \
+	PV_PROCESS_OPERATOR(*=, multiply_assign, *, multiply)       \
+	PV_PROCESS_OPERATOR(/=, divide_assign, /, divide)           \
+	PV_PROCESS_OPERATOR(%=, modulo_assign, %, modulo)           \
+	PV_PROCESS_OPERATOR(&=, bitwise_and_assign, &, bitwise_and) \
+	PV_PROCESS_OPERATOR(|=, bitwise_or_assign, |, bitwise_or)   \
+	PV_PROCESS_OPERATOR(^=, bitwise_xor_assign, ^, bitwise_xor) \
+	PV_PROCESS_OPERATOR(<<=, left_shift_assign, <<, left_shift) \
+	PV_PROCESS_OPERATOR(>>=, right_shift_assign, >>, right_shift)
 
 #define PV_UNARY_OPS                    \
 	PV_PROCESS_OPERATOR(+, unary_plus)  \
@@ -92,24 +92,55 @@ PV_BINARY_OPS
 
 // Binary mutating operators
 
-#define PV_PROCESS_OPERATOR(the_op, name)                                                                          \
-	template< typename Variant, typename = enable_if_polymorphic_variant_t< Variant >,                             \
-			  typename =                                                                                           \
-				  enable_if_has_##name##_t< typename Variant::base_type &, const typename Variant::base_type & > > \
-	decltype(auto) operator the_op(Variant &lhs, const Variant &rhs) {                                             \
-		return lhs.get() the_op rhs.get();                                                                         \
-	}                                                                                                              \
-	template< typename Variant, typename T, typename = enable_if_polymorphic_variant_t< Variant >,                 \
-			  typename = enable_if_not_polymorphic_variant_t< T >,                                                 \
-			  typename = enable_if_has_##name##_t< typename Variant::base_type &, const T & > >                    \
-	decltype(auto) operator the_op(Variant &lhs, const T &rhs) {                                                   \
-		return lhs.get() the_op rhs;                                                                               \
-	}                                                                                                              \
-	template< typename Variant, typename T, typename = enable_if_polymorphic_variant_t< Variant >,                 \
-			  typename = enable_if_not_polymorphic_variant_t< T >,                                                 \
-			  typename = enable_if_has_##name##_t< T &, const typename Variant::base_type & > >                    \
-	decltype(auto) operator the_op(T &lhs, const Variant &rhs) {                                                   \
-		return lhs the_op rhs.get();                                                                               \
+#define PV_PROCESS_OPERATOR(the_op, name, base_op, base_name)                                                                   \
+	template< typename Variant, typename = enable_if_polymorphic_variant_t< Variant >,                                          \
+			  typename =                                                                                                        \
+				  enable_if_has_##name##_t< typename Variant::base_type &, const typename Variant::base_type & > >              \
+	decltype(auto) operator the_op(Variant &lhs, const Variant &rhs) {                                                          \
+		return lhs.get() the_op rhs.get();                                                                                      \
+	}                                                                                                                           \
+	template<                                                                                                                   \
+		typename Variant, typename = enable_if_polymorphic_variant_t< Variant >,                                                \
+		typename = std::enable_if_t<                                                                                            \
+			has_##name##_v<                                                                                                     \
+				typename Variant::base_type &,                                                                                  \
+				const typename Variant::base_type                                                                               \
+					& > && !has_##base_name##_v< const typename Variant::base_type &, const typename Variant::base_type & > > > \
+	decltype(auto) operator base_op(Variant lhs, const Variant &rhs) {                                                          \
+		lhs the_op rhs.get();                                                                                                   \
+		return lhs;                                                                                                             \
+	}                                                                                                                           \
+	template< typename Variant, typename T, typename = enable_if_polymorphic_variant_t< Variant >,                              \
+			  typename = enable_if_not_polymorphic_variant_t< T >,                                                              \
+			  typename = enable_if_has_##name##_t< typename Variant::base_type &, const T & > >                                 \
+	decltype(auto) operator the_op(Variant &lhs, const T &rhs) {                                                                \
+		return lhs.get() the_op rhs;                                                                                            \
+	}                                                                                                                           \
+	template<                                                                                                                   \
+		typename Variant, typename T, typename = enable_if_polymorphic_variant_t< Variant >,                                    \
+		typename = enable_if_not_polymorphic_variant_t< T >,                                                                    \
+		typename = std::enable_if_t<                                                                                            \
+			has_##name##_v< typename Variant::base_type &,                                                                      \
+							const T & > && !has_##base_name##_v< const typename Variant::base_type, const T & > > >             \
+	decltype(auto) operator base_op(Variant lhs, const T &rhs) {                                                                \
+		lhs the_op rhs;                                                                                                         \
+		return lhs;                                                                                                             \
+	}                                                                                                                           \
+	template< typename Variant, typename T, typename = enable_if_polymorphic_variant_t< Variant >,                              \
+			  typename = enable_if_not_polymorphic_variant_t< T >,                                                              \
+			  typename = enable_if_has_##name##_t< T &, const typename Variant::base_type & > >                                 \
+	decltype(auto) operator the_op(T &lhs, const Variant &rhs) {                                                                \
+		return lhs the_op rhs.get();                                                                                            \
+	}                                                                                                                           \
+	template<                                                                                                                   \
+		typename Variant, typename T, typename = enable_if_polymorphic_variant_t< Variant >,                                    \
+		typename = enable_if_not_polymorphic_variant_t< T >,                                                                    \
+		typename = std::enable_if_t<                                                                                            \
+			has_##name##_v< T &, const typename Variant::base_type                                                              \
+									 & > && !has_##name##_v< const T &, const typename Variant::base_type & > > >               \
+	decltype(auto) operator base_op(T lhs, const Variant &rhs) {                                                                \
+		lhs the_op rhs.get();                                                                                                   \
+		return lhs;                                                                                                             \
 	}
 
 PV_BINARY_MUTATING_OPS
