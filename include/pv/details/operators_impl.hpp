@@ -27,37 +27,37 @@ namespace {
 //////////////////////// OPERATORS ////////////////////////////
 ///////////////////////////////////////////////////////////////
 
-#define PV_BINARY_OPS                    \
-	PV_PROCESS_OPERATOR(==, equals)      \
-	PV_PROCESS_OPERATOR(!=, unequals)    \
-	PV_PROCESS_OPERATOR(<, less)         \
-	PV_PROCESS_OPERATOR(>, greater)      \
-	PV_PROCESS_OPERATOR(<=, less_eq)     \
-	PV_PROCESS_OPERATOR(>=, greater_eq)  \
-	PV_PROCESS_OPERATOR(+, add)          \
-	PV_PROCESS_OPERATOR(-, subtract)     \
-	PV_PROCESS_OPERATOR(*, multiply)     \
-	PV_PROCESS_OPERATOR(/, divide)       \
-	PV_PROCESS_OPERATOR(%, modulo)       \
-	PV_PROCESS_OPERATOR(&&, and)         \
-	PV_PROCESS_OPERATOR(||, or)          \
-	PV_PROCESS_OPERATOR(&, bitwise_and)  \
-	PV_PROCESS_OPERATOR(|, bitwise_or)   \
-	PV_PROCESS_OPERATOR(^, bitwise_xor)  \
-	PV_PROCESS_OPERATOR(<<, left_shift)  \
-	PV_PROCESS_OPERATOR(>>, right_shift) \
-	PV_PROCESS_OPERATOR(+=, add_assign)
+#define PV_BINARY_OPS                   \
+	PV_PROCESS_OPERATOR(==, equals)     \
+	PV_PROCESS_OPERATOR(!=, unequals)   \
+	PV_PROCESS_OPERATOR(<, less)        \
+	PV_PROCESS_OPERATOR(>, greater)     \
+	PV_PROCESS_OPERATOR(<=, less_eq)    \
+	PV_PROCESS_OPERATOR(>=, greater_eq) \
+	PV_PROCESS_OPERATOR(+, add)         \
+	PV_PROCESS_OPERATOR(-, subtract)    \
+	PV_PROCESS_OPERATOR(*, multiply)    \
+	PV_PROCESS_OPERATOR(/, divide)      \
+	PV_PROCESS_OPERATOR(%, modulo)      \
+	PV_PROCESS_OPERATOR(&&, and)        \
+	PV_PROCESS_OPERATOR(||, or)         \
+	PV_PROCESS_OPERATOR(&, bitwise_and) \
+	PV_PROCESS_OPERATOR(|, bitwise_or)  \
+	PV_PROCESS_OPERATOR(^, bitwise_xor) \
+	PV_PROCESS_OPERATOR(<<, left_shift) \
+	PV_PROCESS_OPERATOR(>>, right_shift)
 
-#define PV_BINARY_MUTATING_OPS                  \
-	PV_PROCESS_OPERATOR(-=, subtract_assign)    \
-	PV_PROCESS_OPERATOR(*=, multiply_assign)    \
-	PV_PROCESS_OPERATOR(/=, divide_assign)      \
-	PV_PROCESS_OPERATOR(%=, modulo_assign)      \
-	PV_PROCESS_OPERATOR(&=, bitwise_and_assign) \
-	PV_PROCESS_OPERATOR(|=, bitwise_or_assign)  \
-	PV_PROCESS_OPERATOR(^=, bitwise_xor_assign) \
-	PV_PROCESS_OPERATOR(<<=, left_shift_assign) \
-	PV_PROCESS_OPERATOR(>>=, right_shift_assign)
+#define PV_BINARY_MUTATING_OPS                   \
+	PV_PROCESS_OPERATOR(-=, subtract_assign)     \
+	PV_PROCESS_OPERATOR(*=, multiply_assign)     \
+	PV_PROCESS_OPERATOR(/=, divide_assign)       \
+	PV_PROCESS_OPERATOR(%=, modulo_assign)       \
+	PV_PROCESS_OPERATOR(&=, bitwise_and_assign)  \
+	PV_PROCESS_OPERATOR(|=, bitwise_or_assign)   \
+	PV_PROCESS_OPERATOR(^=, bitwise_xor_assign)  \
+	PV_PROCESS_OPERATOR(<<=, left_shift_assign)  \
+	PV_PROCESS_OPERATOR(>>=, right_shift_assign) \
+	PV_PROCESS_OPERATOR(+=, add_assign)
 
 #define PV_UNARY_OPS                    \
 	PV_PROCESS_OPERATOR(+, unary_plus)  \

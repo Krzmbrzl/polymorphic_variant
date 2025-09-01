@@ -63,6 +63,16 @@ TEST(operators, multiply_assign) {
 	ASSERT_EQ(variant1->result(), Derived1::InitialValue * Derived2::Factor);
 }
 
+TEST(operators, add_assign) {
+	// This operator mutates its lhs and therefore requires a non-const overload for the operator impl
+	variant_type variant1(Derived1{});
+	variant_type variant2(Derived2{});
+
+	variant1 += variant2;
+
+	ASSERT_EQ(variant1->result(), Derived1::InitialValue + Derived2::InitialValue);
+}
+
 TEST(operators, prefix_increment) {
 	variant_type variant(Derived1{});
 

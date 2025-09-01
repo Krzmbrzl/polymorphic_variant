@@ -13,6 +13,12 @@ public:
 		return *this;
 	}
 
+	Base &operator+=(const Base &other) {
+		setResult(result() + other.result());
+
+		return *this;
+	}
+
 	int operator*(const Base &other) const { return result() * other.factor(); }
 
 	// prefix increment
